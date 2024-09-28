@@ -8,6 +8,7 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST',
     allowedHeaders: 'Content-Type, Accept, Authorization',
   });
+  app.setGlobalPrefix('api');
   await app.listen(8081);
 }
 bootstrap();
