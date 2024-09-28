@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, MoreThan, Repository } from 'typeorm';
-import { MovieResponseDto } from './dto/movie-response.dto';
+import { MovieDetailResponseDto, MovieResponseDto } from './dto/movie-response.dto';
 import { MovieTheater } from './entities/movie-theater.entity';
 import { Movie } from './entities/movie.entity';
 import { Theater } from './entities/theater.entity';
@@ -43,5 +43,23 @@ async findUpcomingMovies(today: string = new Date().toISOString())  : Promise<Mo
       releaseDate: movie.releaseDate,
       posterPath: movie.posterPath,
     }));
+  }
+
+  async findMovieDetail(id: number): Promise<MovieDetailResponseDto> {
+    const movie = await this.movieRepository.findOne({ where: { id }, relations: ['movieTheaters', 'movieTheaters.theater'] });
+    if (!movie) {
+      throw new NotFoundException('영화를 찾을 수 없습니다');
+    }
+    return {
+      id: movie.id,
+      title: movie.title,
+      releaseDate: movie.releaseDate,
+      posterPath: movie.posterPath,
+      overview: movie.overview,
+      voteAverage: movie.voteAverage,
+      voteCount: movie.voteCount,
+      providers: movie.movieTheaters.map((movieTheater) => movieTheater.theater.name),
+      theMovieDbId: movie.theMovieDbId,
+    };
   }
 }
