@@ -15,4 +15,9 @@ async getReleasedMovies() {
   async getUpcomingMovies() {
     return this.theaterMoviesService.findUpcomingMovies();
   }
+
+  @Get(':id')
+  async getMovieDetail(@Param('id') id: number) {
+    return this.theaterMoviesService.findMovieDetail(id);
+  }
 }
