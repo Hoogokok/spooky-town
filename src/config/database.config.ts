@@ -13,7 +13,7 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
         password: process.env.POSTGRES_PASSWORD,
         database: process.env.POSTGRES_DB,
         autoLoadEntities: true,
-        synchronize: nodeEnv === 'development',
+        synchronize: false,
         ssl: nodeEnv === 'production' ? { rejectUnauthorized: false } : false,
         logging: nodeEnv === 'development',
     };
