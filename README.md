@@ -1,85 +1,125 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ pnpm install
+### 기술 스택
+```
+언어: TypeScript
+런타임: Node.js
+프레임워크: Nest.js
+데이터베이스: PostgreSQL
+테스트: Jest
+린팅: ESLint
+포맷팅: Prettier
 ```
 
-## Compile and run the project
+### 프로젝트 설명 
+이 프로젝트는 스푸키 백엔드를 TypeScript와 Nest.js로 다시 작성한 프로젝트이다.
+ 
 
-```bash
-# development
-$ pnpm run start
+### 스푸키 타운 백엔드 API 문서
 
-# watch mode
-$ pnpm run start:dev
+스푸키 타운의 백엔드 API는 다음 엔드포인트를 제공합니다:
 
-# production mode
-$ pnpm run start:prod
-```
+1. GET("/api/releasing")
+   - 설명: 현재 상영 중인 영화 정보를 반환합니다.
+   - 필요한 매개변수: 없음
+   - 응답:
 
-## Run tests
+     ```json
+     
+  
+       {
+         "id": "문자열",
+         "title": "문자열",
+         "release_date": "YYYY-MM-DD",
+         "poster_path": "문자열",
+         "overview": "문자열",
+         "providers": ["문자열"],
+         "the_movie_db_id": "문자열",
+         "reviews": ["문자열"]
+       }
+     
+     ```
 
-```bash
-# unit tests
-$ pnpm run test
+2. GET("/api/upcoming")
+   - 설명: 상영 예정인 영화 정보를 반환합니다.
+   - 필요한 매개변수: 없음
+   - 응답: "/api/releasing"과 동일한 형식
 
-# e2e tests
-$ pnpm run test:e2e
+3. GET("/api/streaming/expired")
+   - 설명: 스트리밍 서비스에서 곧 종료될 영화 목록을 반환합니다.
+   - 필요한 매개변수: 없음
+   - 응답:
 
-# test coverage
-$ pnpm run test:cov
-```
+     ```json
+     {
+       "expiredMovies": [
+         {
+           "id": "문자열",
+           "title": "문자열",
+           "poster_path": "문자열",
+           "expired_date": "YYYY-MM-DD"
+         }
+       ]
+     }
+     ```
 
-## Resources
+4. GET("/api/streaming/expired/detail/{id}")
+   - 설명: 특정 스트리밍 종료 예정 영화의 상세 정보를 반환합니다.
+   - 필요한 매개변수
+     - id: 영화 ID (URL 경로에 포함)
+   - 응답:
 
-Check out a few resources that may come in handy when working with NestJS:
+     ```json
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+     {
+       "id": "문자열",
+       "title": "문자열",
+       "poster_path": "문자열",
+       "overview": "문자열",
+       "release_date": "YYYY-MM-DD",
+       "vote_average": 숫자,
+       "vote_count": 숫자,
+       "the_movie_db_id": "문자열",
+       "providers": ["문자열"],
+       "reviews": ["문자열"]
+     }
+     ```
 
-## Support
+5. GET("/api/streaming")
+   - 설명: 스트리밍 서비스의 총 페이지 수를 반환합니다.
+   - 필요한 매개변수:
+     - query: 스트리밍 서비스 이름 (예: "netflix", "disney")
+   - 응답: 
+     ```json
+     숫자 
+     ```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+6. GET("/api/streaming/page")
+   - 설명: 스트리밍 서비스의 특정 페이지 영화 정보를 반환합니다.
+   - 필요한 매개변수:
+     - query: 스트리밍 서비스 이름 (예: "netflix", "disney")
+     - page: 페이지 번호
+   - 응답:
+     ```json
+     
+     [
+       {
+       "id": "문자열",
+         "title": "문자열",
+         "poster_path": "문자열",
+         "overview": "문자열",
+         "release_date": "YYYY-MM-DD",
+         "vote_average": 숫자,
+         "vote_count": 숫자,
+         "the_movie_db_id": "문자열",
+         "providers": ["문자열"]
+       }
+     ]
+     ```
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+7. GET("/api/movie/{id}")
+   - 설명: 영화의 상세 정보를 반환합니다.
+   - 필요한 매개변수:
+     - id: 영화 ID (URL 경로에 포함)
+     - category: 영화 카테고리 (쿼리 매개변수, 예: "streaming")
+   - 응답:
+     - category가 "streaming"인 경우: "/api/streaming/expired/detail/{id}"와 동일
+     - 그 외의 경우: "/api/releasing"의 단일 영화 응답과 동일
