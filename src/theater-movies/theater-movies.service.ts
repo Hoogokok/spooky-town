@@ -2,19 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, MoreThan, Repository } from 'typeorm';
 import { MovieDetailResponseDto, MovieResponseDto } from './dto/movie-response.dto';
-import { MovieTheater } from './entities/movie-theater.entity';
 import { Movie } from './entities/movie.entity';
-import { Theater } from './entities/theater.entity';
 
 @Injectable()
 export class TheaterMoviesService {
   constructor(
     @InjectRepository(Movie)
-    private readonly movieRepository: Repository<Movie>,
-    @InjectRepository(Theater)
-    private readonly theaterRepository: Repository<Theater>,
-    @InjectRepository(MovieTheater)
-    private readonly movieTheaterRepository: Repository<MovieTheater>,
+    private readonly movieRepository: Repository<Movie>
   ) {} 
 
 async findUpcomingMovies(today: string = new Date().toISOString())  : Promise<MovieResponseDto[]>{
