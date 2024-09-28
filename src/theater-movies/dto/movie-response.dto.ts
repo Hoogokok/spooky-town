@@ -13,4 +13,6 @@ export class MovieDetailResponseDto {
   overview: string;
   voteAverage: number;
   voteCount: number;
+  providers: string[];
+  theMovieDbId: number;
 }
