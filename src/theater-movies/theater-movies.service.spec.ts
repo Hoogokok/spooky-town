@@ -48,7 +48,7 @@ describe('TheaterMoviesService', () => {
         {
           id: 1,
           title: 'Test Movie 1',
-          releaseDate: '2023-12-25',
+          releaseDate: '2023-12-24',
           posterPath: '/path/to/poster1.jpg',
           movieTheaters: [],
         },
@@ -69,7 +69,7 @@ describe('TheaterMoviesService', () => {
       expect(result[0]).toEqual({
         id: 1,
         title: 'Test Movie 1',
-        releaseDate: '2023-12-25',
+        releaseDate: '2023-12-24',
         posterPath: '/path/to/poster1.jpg',
       });
       expect(result[1]).toEqual({
@@ -83,6 +83,51 @@ describe('TheaterMoviesService', () => {
         where: { releaseDate: expect.any(Object) },
         relations: ['movieTheaters', 'movieTheaters.theater'],
         order: { releaseDate: 'ASC' },
+      });
+    });
+  });
+
+  describe('findReleasedMovies', () => {
+    it('should return an array of released movies', async () => {
+      const mockMovies = [
+        {
+          id: 1,
+          title: 'Test Movie 1',
+          releaseDate: '2023-12-24',
+          posterPath: '/path/to/poster1.jpg',
+          movieTheaters: [],
+        },
+        {
+          id: 2,
+          title: 'Test Movie 2',
+          releaseDate: '2023-12-26',
+          posterPath: '/path/to/poster2.jpg',
+          movieTheaters: [],
+        },
+      ];
+
+      mockMovieRepository.find.mockResolvedValue(mockMovies);
+
+      const result = await service.findReleasedMovies('2023-12-27');
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        id: 1,
+        title: 'Test Movie 1',
+        releaseDate: '2023-12-24',
+        posterPath: '/path/to/poster1.jpg',
+      });
+      expect(result[1]).toEqual({
+        id: 2,
+        title: 'Test Movie 2',
+        releaseDate: '2023-12-26',
+        posterPath: '/path/to/poster2.jpg',
+      });
+
+      expect(movieRepository.find).toHaveBeenCalledWith({
+        where: { releaseDate: expect.any(Object) },
+        relations: ['movieTheaters', 'movieTheaters.theater'],
+        order: { releaseDate: 'DESC' },
       });
     });
   });
