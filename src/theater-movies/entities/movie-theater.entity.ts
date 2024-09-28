@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Movie } from './movie.entity';
 import { Theater } from './theater.entity';
 
-@Entity('movie_theater')
+@Entity('movie_theaters')
 export class MovieTheater {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
   id: number;
@@ -12,6 +12,6 @@ export class MovieTheater {
   movie: Movie;
 
   @ManyToOne(() => Theater, theater => theater.movieTheaters)
-  @JoinColumn({ name: 'theater_id'})
+  @JoinColumn({ name: 'theaters_id'})
   theater: Theater;
 }

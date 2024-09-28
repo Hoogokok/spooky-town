@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { MovieTheater } from './movie-theater.entity';
-@Entity('theater')
+@Entity('theaters')
 export class Theater {
   @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
   id: number;
