@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StreamingMovie } from './entities/streaming-movie.entity'
+import { MovieProvider } from './entities/movie-provider.entity'
 import { StreamingPageResponseDto } from './dto/streaming-page-response.dto';
 
 @Injectable()
@@ -9,6 +10,8 @@ export class StreamingMoviesService {
   constructor(
     @InjectRepository(StreamingMovie)
     private streamingMovieRepository: Repository<StreamingMovie>,
+    @InjectRepository(MovieProvider)
+    private movieProviderRepository: Repository<MovieProvider>,
   ) {}
 
   async getStreamingMovies(query: string, page: number): Promise<StreamingPageResponseDto[]> {
@@ -36,5 +39,20 @@ export class StreamingMoviesService {
       release_date: movie.release_date,
       providers: movie.movieProviders[0].theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
     }));
+  }
+
+async getTotalPages(query: string): Promise<number> {
+    const providerId = query === "netflix" ? 1 : query === "disney" ? 2 : 0;
+    const itemsPerPage = 6;
+  
+    const queryBuilder = this.movieProviderRepository
+    .createQueryBuilder('movieProvider');
+  
+    if (providerId !== 0) {
+      queryBuilder.where('movieProvider.theProviderId = :providerId', { providerId });
+    }
+  
+    const totalCount = await queryBuilder.getCount();
+    return Math.ceil(totalCount / itemsPerPage);
   }
 }
