@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { MovieProvider } from './movieprovider.entity';
 
 @Entity('movie')
 export class StreamingMovie {
@@ -25,4 +26,7 @@ export class StreamingMovie {
 
   @Column({ type: 'bigint', name: 'the_movie_db_id' })
   theMovieDbId: number;
+
+  @OneToMany(() => MovieProvider, movieProvider => movieProvider.movie)
+  movieProviders: MovieProvider[];
 }
