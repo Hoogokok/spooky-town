@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { MovieProvider } from './movieprovider.entity';
+import { MovieProvider } from './movie-provider.entity';
 
 @Entity('movie')
 export class StreamingMovie {
