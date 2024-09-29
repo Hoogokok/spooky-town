@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, MoreThan, Repository } from 'typeorm';
 import { MovieDetailResponseDto, MovieResponseDto } from './dto/movie-response.dto';
-import { TheaterMovie } from './entities/theaterMovie.entity';
+import { TheaterMovie } from './entities/theater-movie.entity';
 
 @Injectable()
 export class TheaterMoviesService {

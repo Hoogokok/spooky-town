@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TheaterMoviesService } from './theater-movies.service';
-import { TheaterMovie } from './entities/theaterMovie.entity';
+import { TheaterMovie } from './entities/theater-movie.entity';
 import { Theater } from './entities/theater.entity';
 import { MovieTheater } from './entities/movie-theater.entity';
 import { MovieResponseDto, MovieDetailResponseDto } from './dto/movie-response.dto';
