@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TheaterMoviesModule } from './theater-movies/theater-movies.module';
+import { StreamingMoviesModule } from './streaming-movies/streaming-movies.module';
   
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TheaterMoviesModule } from './theater-movies/theater-movies.module';
       useFactory: (configService: ConfigService) => configService.get('database'),
     }),
     TheaterMoviesModule,
+    StreamingMoviesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
