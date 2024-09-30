@@ -24,6 +24,9 @@ describe('MoviesController', () => {
             getProviderMovies: jest.fn(),
             getExpiringHorrorMovies: jest.fn(),
             getExpiringHorrorMovieDetail: jest.fn(),
+            findTheatricalMovieDetail: jest.fn(),
+            findReleasedMovies: jest.fn(),
+            findUpcomingMovies: jest.fn(),
           },
         },
       ],
@@ -110,6 +113,43 @@ describe('MoviesController', () => {
       jest.spyOn(moviesService, 'getExpiringHorrorMovieDetail').mockResolvedValue(result);
 
       expect(await controller.getExpiringHorrorMovieDetail(1)).toBe(result);
+    });
+  });
+
+  describe('getTheaterMovieDetail', () => {
+    it('극장 개봉 영화의 상세 정보를 반환해야 합니다', async () => {
+      const result: MovieDetailResponseDto = {
+        id: 1,
+        title: '극장 영화 1',
+        posterPath: '/poster1.jpg',
+        releaseDate: '2023-07-01',
+        overview: '재미있는 영화입니다.',
+        voteAverage: 8.5,
+        voteCount: 1000,
+        providers: ['극장 A', '극장 B'],
+        theMovieDbId: 12345
+      };
+      jest.spyOn(moviesService, 'findTheatricalMovieDetail').mockResolvedValue(result);
+
+      expect(await controller.getTheaterMovieDetail(1)).toBe(result);
+    });
+  });
+
+  describe('getReleasedMovies', () => {
+    it('개봉 중인 영화 목록을 반환해야 합니다', async () => {
+      const result: MovieResponseDto[] = [{ id: 1, title: 'Test Movie', releaseDate: '2023-01-01', posterPath: '/test.jpg' }];
+      jest.spyOn(moviesService, 'findReleasedMovies').mockResolvedValue(result);
+
+      expect(await controller.getReleasedMovies()).toBe(result);
+    });
+  });
+
+  describe('getUpcomingMovies', () => {
+    it('개봉 예정인 영화 목록을 반환해야 합니다', async () => {
+      const result: MovieResponseDto[] = [{ id: 1, title: 'Test Movie', releaseDate: '2023-01-01', posterPath: '/test.jpg' }];
+      jest.spyOn(moviesService, 'findUpcomingMovies').mockResolvedValue(result);
+
+      expect(await controller.getUpcomingMovies()).toBe(result);
     });
   });
 });
