@@ -132,7 +132,9 @@ export class MoviesService {
         id: movie.id,
         title: movie.title,
         posterPath: movie.poster_path,
-        expiringDate: expiringMovie.expiredDate.toISOString().split('T')[0],
+        expiringDate: expiringMovie.expiredDate instanceof Date 
+          ? expiringMovie.expiredDate.toISOString().split('T')[0]
+          : expiringMovie.expiredDate, // 이미 문자열인 경우 그대로 사용
         providers: movie.movieProviders[0].theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
       };
     });
