@@ -27,6 +27,9 @@ export class StreamingMovie {
   @Column({ type: 'bigint', name: 'the_movie_db_id' })
   theMovieDbId: number;
 
+  @Column({ type: 'boolean' , name: 'is_theatrical_release'})
+  isTheatricalRelease: boolean;
+
   @OneToMany(() => MovieProvider, movieProvider => movieProvider.movie)
   movieProviders: MovieProvider[];
 }
