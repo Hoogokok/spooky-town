@@ -1,11 +1,11 @@
-export class MovieDetailResponseDto {
+export class ExpiringMovieDetailResponseDto {
     id: number;
     title: string;
-    overview: string;
-    releaseDate: string;
     posterPath: string;
+    expiringDate: string;
+    overview: string;
     voteAverage: number;
     voteCount: number;
-    providers?: string[];
+    providers: string[];
     theMovieDbId: number;
   }
