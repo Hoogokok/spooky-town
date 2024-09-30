@@ -40,4 +40,19 @@ export class MoviesController {
   async getExpiringHorrorMovieDetail(@Param('id', ParseIntPipe) id: number): Promise<ExpiringMovieDetailResponseDto> {
     return this.moviesService.getExpiringHorrorMovieDetail(id);
   }
+
+  @Get('theater/upcoming')
+  async getUpcomingMovies(): Promise<MovieResponseDto[]> {
+    return this.moviesService.findUpcomingMovies();
+  }
+
+  @Get('theater/released')
+  async getReleasedMovies(): Promise<MovieResponseDto[]> {
+    return this.moviesService.findReleasedMovies();
+  }
+
+  @Get('theater/:id')
+  async getTheaterMovieDetail(@Param('id', ParseIntPipe) id: number): Promise<MovieDetailResponseDto> {
+    return this.moviesService.findTheatricalMovieDetail(id);
+  }
 }

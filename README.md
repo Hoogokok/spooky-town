@@ -17,109 +17,56 @@
 
 스푸키 타운의 백엔드 API는 다음 엔드포인트를 제공합니다:
 
-1. GET("/api/releasing")
+1. GET("/movies/theater/released")
    - 설명: 현재 상영 중인 영화 정보를 반환합니다.
    - 필요한 매개변수: 없음
-   - 응답:
+   - 응답: MovieResponseDto[] 형식
 
-     ```json
-     
-  
-       {
-         "id": "문자열",
-         "title": "문자열",
-         "release_date": "YYYY-MM-DD",
-         "poster_path": "문자열",
-         "overview": "문자열",
-         "providers": ["문자열"],
-         "the_movie_db_id": "문자열",
-         "reviews": ["문자열"]
-       }
-     
-     ```
-
-2. GET("/api/upcoming")
+2. GET("/movies/theater/upcoming")
    - 설명: 상영 예정인 영화 정보를 반환합니다.
    - 필요한 매개변수: 없음
-   - 응답: "/api/releasing"과 동일한 형식
+   - 응답: MovieResponseDto[] 형식
 
-3. GET("/api/streaming/expired")
-   - 설명: 스트리밍 서비스에서 곧 종료될 영화 목록을 반환합니다.
+3. GET("/movies/expiring-horror")
+   - 설명: 스트리밍 서비스에서 곧 종료될 공포 영화 목록을 반환합니다.
    - 필요한 매개변수: 없음
-   - 응답:
+   - 응답: ExpiringMovieResponseDto[] 형식
 
-     ```json
-     {
-       "expiredMovies": [
-         {
-           "id": "문자열",
-           "title": "문자열",
-           "poster_path": "문자열",
-           "expired_date": "YYYY-MM-DD"
-         }
-       ]
-     }
-     ```
-
-4. GET("/api/streaming/expired/detail/{id}")
-   - 설명: 특정 스트리밍 종료 예정 영화의 상세 정보를 반환합니다.
-   - 필요한 매개변수
+4. GET("/movies/expiring-horror/{id}")
+   - 설명: 특정 스트리밍 종료 예정 공포 영화의 상세 정보를 반환합니다.
+   - 필요한 매개변수:
      - id: 영화 ID (URL 경로에 포함)
-   - 응답:
+   - 응답: ExpiringMovieDetailResponseDto 형식
 
-     ```json
-
-     {
-       "id": "문자열",
-       "title": "문자열",
-       "poster_path": "문자열",
-       "overview": "문자열",
-       "release_date": "YYYY-MM-DD",
-       "vote_average": 숫자,
-       "vote_count": 숫자,
-       "the_movie_db_id": "문자열",
-       "providers": ["문자열"],
-       "reviews": ["문자열"]
-     }
-     ```
-
-5. GET("/api/streaming")
+5. GET("/movies/streaming/pages")
    - 설명: 스트리밍 서비스의 총 페이지 수를 반환합니다.
    - 필요한 매개변수:
-     - query: 스트리밍 서비스 이름 (예: "netflix", "disney")
-   - 응답: 
-     ```json
-     숫자 
-     ```
+     - provider: 스트리밍 서비스 이름 (쿼리 매개변수)
+   - 응답: { totalPages: number } 형식
 
-6. GET("/api/streaming/page")
-   - 설명: 스트리밍 서비스의 특정 페이지 영화 정보를 반환합니다.
+6. GET("/movies/streaming")
+   - 설명: 스트리밍 서비스의 영화 정보를 반환합니다.
    - 필요한 매개변수:
-     - query: 스트리밍 서비스 이름 (예: "netflix", "disney")
-     - page: 페이지 번호
-   - 응답:
-     ```json
-     
-     [
-       {
-       "id": "문자열",
-         "title": "문자열",
-         "poster_path": "문자열",
-         "overview": "문자열",
-         "release_date": "YYYY-MM-DD",
-         "vote_average": 숫자,
-         "vote_count": 숫자,
-         "the_movie_db_id": "문자열",
-         "providers": ["문자열"]
-       }
-     ]
-     ```
+     - provider: 스트리밍 서비스 이름 (쿼리 매개변수)
+     - page: 페이지 번호 (쿼리 매개변수, 선택적)
+   - 응답: MovieResponseDto[] 형식
 
-7. GET("/api/movie/{id}")
-   - 설명: 영화의 상세 정보를 반환합니다.
+7. GET("/movies/streaming/{id}")
+   - 설명: 스트리밍 영화의 상세 정보를 반환합니다.
    - 필요한 매개변수:
      - id: 영화 ID (URL 경로에 포함)
-     - category: 영화 카테고리 (쿼리 매개변수, 예: "streaming")
-   - 응답:
-     - category가 "streaming"인 경우: "/api/streaming/expired/detail/{id}"와 동일
-     - 그 외의 경우: "/api/releasing"의 단일 영화 응답과 동일
+   - 응답: MovieDetailResponseDto 형식
+
+8. GET("/movies/theater/{id}")
+   - 설명: 극장 상영 영화의 상세 정보를 반환합니다.
+   - 필요한 매개변수:
+     - id: 영화 ID (URL 경로에 포함)
+   - 응답: MovieDetailResponseDto 형식
+
+9. GET("/movies/provider/{providerId}")
+   - 설명: 특정 제공자의 영화 목록을 반환합니다.
+   - 필요한 매개변수:
+     - providerId: 제공자 ID (URL 경로에 포함)
+   - 응답: MovieResponseDto[] 형식
+
+각 DTO의 구체적인 형식은 해당 DTO 파일을 참조하세요.

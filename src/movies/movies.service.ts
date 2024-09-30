@@ -9,6 +9,7 @@ import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
 import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
 import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
+import { MoreThan, LessThanOrEqual } from 'typeorm';
 
 @Injectable()
 export class MoviesService {
@@ -131,7 +132,9 @@ export class MoviesService {
         id: movie.id,
         title: movie.title,
         posterPath: movie.poster_path,
-        expiringDate: expiringMovie.expiredDate.toISOString().split('T')[0],
+        expiringDate: expiringMovie.expiredDate instanceof Date 
+          ? expiringMovie.expiredDate.toISOString().split('T')[0]
+          : expiringMovie.expiredDate, // 이미 문자열인 경우 그대로 사용
         providers: movie.movieProviders[0].theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
       };
     });
@@ -166,6 +169,62 @@ export class MoviesService {
       providers: movie.movieProviders.map(mp => 
         mp.theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
       ),
+      theMovieDbId: movie.theMovieDbId
+    };
+  }
+
+  async findUpcomingMovies(today: string = new Date().toISOString()): Promise<MovieResponseDto[]> {
+    const movies = await this.movieRepository.find({
+      where: { 
+        release_date: MoreThan(today),
+        isTheatricalRelease: true
+      },
+      relations: ['movieTheaters', 'movieTheaters.theater'],
+      order: { release_date: 'ASC' },
+    });
+    return movies.map((movie) => ({
+      id: movie.id,
+      title: movie.title,
+      releaseDate: movie.release_date,
+      posterPath: movie.poster_path,
+    }));
+  }
+
+  async findReleasedMovies(today: string = new Date().toISOString()): Promise<MovieResponseDto[]> {
+    const movies = await this.movieRepository.find({
+      where: { 
+        release_date: LessThanOrEqual(today),
+        isTheatricalRelease: true
+      },
+      order: { release_date: 'DESC' },
+    });
+    return movies.map((movie) => ({
+      id: movie.id,
+      title: movie.title,
+      releaseDate: movie.release_date,
+      posterPath: movie.poster_path,
+    }));
+  }
+
+  async findTheatricalMovieDetail(id: number): Promise<MovieDetailResponseDto> {
+    const movie = await this.movieRepository.findOne({
+      where: { id, isTheatricalRelease: true },
+      relations: ['movieTheaters', 'movieTheaters.theater']
+    });
+
+    if (!movie) {
+      throw new NotFoundException(`극장 개봉 영화 ID ${id}를 찾을 수 없습니다.`);
+    }
+
+    return {
+      id: movie.id,
+      title: movie.title,
+      posterPath: movie.poster_path,
+      releaseDate: movie.release_date,
+      overview: movie.overview,
+      voteAverage: movie.vote_average,
+      voteCount: movie.vote_count,
+      providers: movie.movieTheaters.map(mt => mt.theater.name),
       theMovieDbId: movie.theMovieDbId
     };
   }
