@@ -31,7 +31,7 @@ export class Movie {
   @Column({ type: 'boolean', name: 'is_theatrical_release' })
   isTheatricalRelease: boolean;
 
-  @OneToMany(() => MovieProvider, movieProvider => movieProvider.movies)
+  @OneToMany(() => MovieProvider, movieProvider => movieProvider.movie)
   movieProviders: MovieProvider[];
 
   @OneToMany(() => MovieTheater, movieTheater => movieTheater.movie)
