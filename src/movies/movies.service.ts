@@ -6,6 +6,9 @@ import { MovieProvider } from './entities/movie-provider.entity';
 import { MovieResponseDto } from './dto/movie-response.dto';
 import { MovieQueryDto } from './dto/movie-query.dto';
 import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
+import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
+import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
+import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
 
 @Injectable()
 export class MoviesService {
@@ -13,7 +16,9 @@ export class MoviesService {
     @InjectRepository(Movie)
     private movieRepository: Repository<Movie>,
     @InjectRepository(MovieProvider)
-    private movieProviderRepository: Repository<MovieProvider>
+    private movieProviderRepository: Repository<MovieProvider>,
+    @InjectRepository(NetflixHorrorExpiring)
+    private netflixHorrorExpiringRepository: Repository<NetflixHorrorExpiring>
   ) {}
 
   async getStreamingMovies(query: MovieQueryDto): Promise<MovieResponseDto[]> {
@@ -108,5 +113,60 @@ export class MoviesService {
       releaseDate: movie.release_date,
       providers: providerId === 1 ? "넷플릭스" : "디즈니플러스"
     }));
+  }
+
+  async getExpiringHorrorMovies(): Promise<ExpiringMovieResponseDto[]> {
+    const expiringMovies = await this.netflixHorrorExpiringRepository.find();
+    const movieIds = expiringMovies.map(em => em.theMovieDbId);
+
+    const movies = await this.movieRepository
+      .createQueryBuilder('movie')
+      .innerJoinAndSelect('movie.movieProviders', 'movieProvider')
+      .where('movie.theMovieDbId IN (:...movieIds)', { movieIds })
+      .getMany();
+
+    return movies.map(movie => {
+      const expiringMovie = expiringMovies.find(em => em.theMovieDbId === movie.theMovieDbId);
+      return {
+        id: movie.id,
+        title: movie.title,
+        posterPath: movie.poster_path,
+        expiringDate: expiringMovie.expiredDate.toISOString().split('T')[0],
+        providers: movie.movieProviders[0].theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
+      };
+    });
+  }
+
+  async getExpiringHorrorMovieDetail(id: number): Promise<ExpiringMovieDetailResponseDto> {
+    const movie = await this.movieRepository.findOne({
+      where: { id },
+      relations: ['movieProviders']
+    });
+
+    if (!movie) {
+      throw new NotFoundException(`영화 ID ${id}를 찾을 수 없습니다.`);
+    }
+
+    const expiringMovie = await this.netflixHorrorExpiringRepository.findOne({
+      where: { theMovieDbId: movie.theMovieDbId }
+    });
+
+    if (!expiringMovie) {
+      throw new NotFoundException(`만료 예정인 영화 ID ${id}를 찾을 수 없습니다.`);
+    }
+
+    return {
+      id: movie.id,
+      title: movie.title,
+      posterPath: movie.poster_path,
+      expiringDate: expiringMovie.expiredDate.toISOString().split('T')[0],
+      overview: movie.overview,
+      voteAverage: movie.vote_average,
+      voteCount: movie.vote_count,
+      providers: movie.movieProviders.map(mp => 
+        mp.theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
+      ),
+      theMovieDbId: movie.theMovieDbId
+    };
   }
 }
