@@ -3,6 +3,8 @@ import { MoviesService } from './movies.service';
 import { MovieQueryDto } from './dto/movie-query.dto';
 import { MovieResponseDto } from './dto/movie-response.dto';
 import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
+import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
+import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
 
 @Controller('movies')
 export class MoviesController {
@@ -27,5 +29,15 @@ export class MoviesController {
   @Get('provider/:providerId')
   async getProviderMovies(@Param('providerId', ParseIntPipe) providerId: number): Promise<MovieResponseDto[]> {
     return this.moviesService.getProviderMovies(providerId);
+  }
+
+  @Get('expiring-horror')
+  async getExpiringHorrorMovies(): Promise<ExpiringMovieResponseDto[]> {
+    return this.moviesService.getExpiringHorrorMovies();
+  }
+
+  @Get('expiring-horror/:id')
+  async getExpiringHorrorMovieDetail(@Param('id', ParseIntPipe) id: number): Promise<ExpiringMovieDetailResponseDto> {
+    return this.moviesService.getExpiringHorrorMovieDetail(id);
   }
 }

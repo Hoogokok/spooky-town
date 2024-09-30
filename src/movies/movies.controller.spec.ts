@@ -4,6 +4,8 @@ import { MoviesService } from './movies.service';
 import { MovieQueryDto } from './dto/movie-query.dto';
 import { MovieResponseDto } from './dto/movie-response.dto';
 import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
+import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
+import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
@@ -20,6 +22,8 @@ describe('MoviesController', () => {
             getTotalStreamingPages: jest.fn(),
             getStreamingMovieDetail: jest.fn(),
             getProviderMovies: jest.fn(),
+            getExpiringHorrorMovies: jest.fn(),
+            getExpiringHorrorMovieDetail: jest.fn(),
           },
         },
       ],
@@ -76,6 +80,36 @@ describe('MoviesController', () => {
       jest.spyOn(moviesService, 'getProviderMovies').mockResolvedValue(result);
 
       expect(await controller.getProviderMovies(1)).toBe(result);
+    });
+  });
+
+  describe('getExpiringHorrorMovies', () => {
+    it('만료 예정인 공포 영화 목록을 반환해야 합니다', async () => {
+      const result: ExpiringMovieResponseDto[] = [
+        { id: 1, title: 'Horror Movie', expiringDate: '2023-07-31', posterPath: '/horror.jpg', providers: '넷플릭스' }
+      ];
+      jest.spyOn(moviesService, 'getExpiringHorrorMovies').mockResolvedValue(result);
+
+      expect(await controller.getExpiringHorrorMovies()).toBe(result);
+    });
+  });
+
+  describe('getExpiringHorrorMovieDetail', () => {
+    it('만료 예정인 공포 영화의 상세 정보를 반환해야 합니다', async () => {
+      const result: ExpiringMovieDetailResponseDto = {
+        id: 1,
+        title: 'Horror Movie',
+        expiringDate: '2023-07-31',
+        posterPath: '/horror.jpg',
+        overview: 'A scary movie',
+        voteAverage: 7.5,
+        voteCount: 1000,
+        providers: ['넷플릭스'],
+        theMovieDbId: 12345
+      };
+      jest.spyOn(moviesService, 'getExpiringHorrorMovieDetail').mockResolvedValue(result);
+
+      expect(await controller.getExpiringHorrorMovieDetail(1)).toBe(result);
     });
   });
 });
