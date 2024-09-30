@@ -2,14 +2,14 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TheaterMoviesService } from './theater-movies.service';
-import { Movie } from './entities/movie.entity';
+import { TheaterMovie } from './entities/theater-movie.entity';
 import { Theater } from './entities/theater.entity';
 import { MovieTheater } from './entities/movie-theater.entity';
 import { MovieResponseDto, MovieDetailResponseDto } from './dto/movie-response.dto';
 
 describe('TheaterMoviesService', () => {
   let service: TheaterMoviesService;
-  let movieRepository: Repository<Movie>;
+  let movieRepository: Repository<TheaterMovie>;
 
   const mockMovieRepository = {
     find: jest.fn(),
@@ -21,7 +21,7 @@ describe('TheaterMoviesService', () => {
       providers: [
         TheaterMoviesService,
         {
-          provide: getRepositoryToken(Movie),
+          provide: getRepositoryToken(TheaterMovie),
           useValue: mockMovieRepository,
         },
         {
@@ -36,7 +36,7 @@ describe('TheaterMoviesService', () => {
     }).compile();
 
     service = module.get<TheaterMoviesService>(TheaterMoviesService);
-    movieRepository = module.get<Repository<Movie>>(getRepositoryToken(Movie));
+    movieRepository = module.get<Repository<TheaterMovie>>(getRepositoryToken(TheaterMovie));
   });
 
   it('정의 되어 있어야 한다.', () => {
