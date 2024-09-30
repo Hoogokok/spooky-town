@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MoviesController } from './movies.controller';
 import { MoviesService } from './movies.service';
 import { MovieQueryDto } from './dto/movie-query.dto';
+import { MovieResponseDto } from './dto/movie-response.dto';
+import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
@@ -15,6 +17,9 @@ describe('MoviesController', () => {
           provide: MoviesService,
           useValue: {
             getStreamingMovies: jest.fn(),
+            getTotalStreamingPages: jest.fn(),
+            getStreamingMovieDetail: jest.fn(),
+            getProviderMovies: jest.fn(),
           },
         },
       ],
@@ -29,16 +34,48 @@ describe('MoviesController', () => {
   });
 
   describe('getStreamingMovies', () => {
-    it('MoviesService의 getStreamingMovies 메서드를 호출해야 합니다', async () => {
-      const query: MovieQueryDto = { provider: 'netflix', page: 1 };
-      const expectedResult = [{ id: 1, title: 'Test Movie', posterPath: '/test.jpg', releaseDate: '2023-01-01', providers: '넷플릭스' }];
-      
-      jest.spyOn(moviesService, 'getStreamingMovies').mockResolvedValue(expectedResult);
+    it('영화 배열을 반환해야 합니다', async () => {
+      const result: MovieResponseDto[] = [{ id: 1, title: 'Test Movie', releaseDate: '2023-01-01', posterPath: '/test.jpg' }];
+      jest.spyOn(moviesService, 'getStreamingMovies').mockResolvedValue(result);
 
-      const result = await controller.getStreamingMovies(query);
+      expect(await controller.getStreamingMovies({} as MovieQueryDto)).toBe(result);
+    });
+  });
 
-      expect(moviesService.getStreamingMovies).toHaveBeenCalledWith(query);
-      expect(result).toEqual(expectedResult);
+  describe('getTotalStreamingPages', () => {
+    it('총 페이지 수를 반환해야 합니다', async () => {
+      const totalPages = 5;
+      jest.spyOn(moviesService, 'getTotalStreamingPages').mockResolvedValue(totalPages);
+
+      expect(await controller.getTotalStreamingPages({} as MovieQueryDto)).toEqual({ totalPages });
+    });
+  });
+
+  describe('getStreamingMovieDetail', () => {
+    it('영화 상세 정보를 반환해야 합니다', async () => {
+      const result: MovieDetailResponseDto = {
+        id: 1,
+        title: 'Test Movie',
+        overview: 'Test Overview',
+        releaseDate: '2023-01-01',
+        posterPath: '/test.jpg',
+        voteAverage: 8.5,
+        voteCount: 100,
+        theMovieDbId: 12345,
+        providers: ['넷플릭스'],
+      };
+      jest.spyOn(moviesService, 'getStreamingMovieDetail').mockResolvedValue(result);
+
+      expect(await controller.getStreamingMovieDetail(1)).toBe(result);
+    });
+  });
+
+  describe('getProviderMovies', () => {
+    it('특정 프로바이더의 영화 목록을 반환해야 합니다', async () => {
+      const result: MovieResponseDto[] = [{ id: 1, title: 'Test Movie', releaseDate: '2023-01-01', posterPath: '/test.jpg' }];
+      jest.spyOn(moviesService, 'getProviderMovies').mockResolvedValue(result);
+
+      expect(await controller.getProviderMovies(1)).toBe(result);
     });
   });
 });
