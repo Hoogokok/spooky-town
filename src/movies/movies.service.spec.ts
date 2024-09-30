@@ -6,12 +6,14 @@ import { MovieProvider } from './entities/movie-provider.entity';
 import { MovieQueryDto } from './dto/movie-query.dto';
 import { NotFoundException } from '@nestjs/common';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
+import { Repository } from 'typeorm';
 
 describe('MoviesService', () => {
   let service: MoviesService;
   let mockMovieRepository: any;
   let mockMovieProviderRepository: any;
   let mockNetflixHorrorExpiringRepository: any;
+  let movieRepository: Repository<Movie>;
 
   beforeEach(async () => {
     const mockQueryBuilder = {
@@ -43,7 +45,8 @@ describe('MoviesService', () => {
 
     mockMovieRepository = {
       createQueryBuilder: jest.fn(() => mockQueryBuilder),
-      findOne: jest.fn()
+      findOne: jest.fn(),
+      find: jest.fn(), // 이 줄을 추가합니다
     };
 
     mockMovieProviderRepository = {
@@ -74,6 +77,7 @@ describe('MoviesService', () => {
     }).compile();
 
     service = module.get<MoviesService>(MoviesService);
+    movieRepository = module.get<Repository<Movie>>(getRepositoryToken(Movie));
   });
 
   it('서비스가 정의되어 있어야 합니다', () => {
@@ -341,6 +345,67 @@ describe('MoviesService', () => {
       mockNetflixHorrorExpiringRepository.findOne.mockResolvedValue(null);
 
       await expect(service.getExpiringHorrorMovieDetail(1)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findUpcomingMovies', () => {
+    it('개봉 예정 영화 목록을 반환해야 합니다', async () => {
+      const mockMovies = [
+        {
+          id: 1,
+          title: '개봉 예정 영화 1',
+          release_date: '2023-07-01',
+          poster_path: '/poster1.jpg',
+          isTheatricalRelease: true,
+          theMovieDbId: 1,
+          movieTheaters: [],
+          overview: '개봉 예정 영화 1',
+          vote_average: 8.5,
+          vote_count: 100,
+          movieProviders: [],
+        },
+        {
+          id: 2,
+          title: '개봉 예정 영화 2',
+          release_date: '2023-07-15',
+          poster_path: '/poster2.jpg',
+          isTheatricalRelease: true,
+          theMovieDbId: 2,
+          movieTheaters: [],
+          overview: '개봉 예정 영화 2',
+          vote_average: 7.5,
+          vote_count: 200,
+          movieProviders: [],
+        },
+      ];
+
+      mockMovieRepository.find.mockResolvedValue(mockMovies);
+
+      const result = await service.findUpcomingMovies('2023-06-01');
+
+      expect(result).toEqual([
+        {
+          id: 1,
+          title: '개봉 예정 영화 1',
+          releaseDate: '2023-07-01',
+          posterPath: '/poster1.jpg',
+        },
+        {
+          id: 2,
+          title: '개봉 예정 영화 2',
+          releaseDate: '2023-07-15',
+          posterPath: '/poster2.jpg',
+        },
+      ]);
+
+      expect(mockMovieRepository.find).toHaveBeenCalledWith({
+        where: { 
+          release_date: expect.any(Object),
+          isTheatricalRelease: true
+        },
+        relations: ['movieTheaters', 'movieTheaters.theater'],
+        order: { release_date: 'ASC' },
+      });
     });
   });
 });
