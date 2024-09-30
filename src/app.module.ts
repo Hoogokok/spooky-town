@@ -6,6 +6,7 @@ import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TheaterMoviesModule } from './theater-movies/theater-movies.module';
 import { StreamingMoviesModule } from './streaming-movies/streaming-movies.module';
+import { MoviesModule } from './movies/movies.module';
   
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { StreamingMoviesModule } from './streaming-movies/streaming-movies.modul
     }),
     TheaterMoviesModule,
     StreamingMoviesModule,
+    MoviesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
