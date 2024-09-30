@@ -9,7 +9,7 @@ import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
 import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
 import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
-import { MoreThan } from 'typeorm';
+import { MoreThan, LessThanOrEqual } from 'typeorm';
 
 @Injectable()
 export class MoviesService {
@@ -179,6 +179,22 @@ export class MoviesService {
       },
       relations: ['movieTheaters', 'movieTheaters.theater'],
       order: { release_date: 'ASC' },
+    });
+    return movies.map((movie) => ({
+      id: movie.id,
+      title: movie.title,
+      releaseDate: movie.release_date,
+      posterPath: movie.poster_path,
+    }));
+  }
+
+  async findReleasedMovies(today: string = new Date().toISOString()): Promise<MovieResponseDto[]> {
+    const movies = await this.movieRepository.find({
+      where: { 
+        release_date: LessThanOrEqual(today),
+        isTheatricalRelease: true
+      },
+      order: { release_date: 'DESC' },
     });
     return movies.map((movie) => ({
       id: movie.id,

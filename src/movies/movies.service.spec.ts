@@ -1,12 +1,12 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { MoviesService } from './movies.service';
-import { Movie } from './entities/movie.entity';
-import { MovieProvider } from './entities/movie-provider.entity';
-import { MovieQueryDto } from './dto/movie-query.dto';
-import { NotFoundException } from '@nestjs/common';
-import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
 import { Repository } from 'typeorm';
+import { MovieQueryDto } from './dto/movie-query.dto';
+import { MovieProvider } from './entities/movie-provider.entity';
+import { Movie } from './entities/movie.entity';
+import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
+import { MoviesService } from './movies.service';
 
 describe('MoviesService', () => {
   let service: MoviesService;
@@ -405,6 +405,54 @@ describe('MoviesService', () => {
         },
         relations: ['movieTheaters', 'movieTheaters.theater'],
         order: { release_date: 'ASC' },
+      });
+    });
+  });
+
+  describe('findReleasedMovies', () => {
+    it('이미 개봉된 영화 목록을 반환해야 합니다', async () => {
+      const mockMovies = [
+        {
+          id: 1,
+          title: '개봉된 영화 1',
+          release_date: '2023-05-01',
+          poster_path: '/poster1.jpg',
+          isTheatricalRelease: true,
+        },
+        {
+          id: 2,
+          title: '개봉된 영화 2',
+          release_date: '2023-05-15',
+          poster_path: '/poster2.jpg',
+          isTheatricalRelease: true,
+        },
+      ];
+
+      mockMovieRepository.find.mockResolvedValue(mockMovies);
+
+      const result = await service.findReleasedMovies('2023-06-01');
+
+      expect(result).toEqual([
+        {
+          id: 1,
+          title: '개봉된 영화 1',
+          releaseDate: '2023-05-01',
+          posterPath: '/poster1.jpg',
+        },
+        {
+          id: 2,
+          title: '개봉된 영화 2',
+          releaseDate: '2023-05-15',
+          posterPath: '/poster2.jpg',
+        },
+      ]);
+
+      expect(mockMovieRepository.find).toHaveBeenCalledWith({
+        where: { 
+          release_date: expect.any(Object),
+          isTheatricalRelease: true
+        },
+        order: { release_date: 'DESC' },
       });
     });
   });
