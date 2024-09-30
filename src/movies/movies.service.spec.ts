@@ -456,4 +456,51 @@ describe('MoviesService', () => {
       });
     });
   });
+
+  describe('findTheatricalMovieDetail', () => {
+    it('존재하는 극장 개봉 영화의 상세 정보를 반환해야 합니다', async () => {
+      const mockMovie = {
+        id: 1,
+        title: '극장 영화 1',
+        poster_path: '/poster1.jpg',
+        release_date: '2023-07-01',
+        overview: '재미있는 영화입니다.',
+        vote_average: 8.5,
+        vote_count: 1000,
+        theMovieDbId: 12345,
+        isTheatricalRelease: true,
+        movieTheaters: [
+          { theater: { name: '극장 A' } },
+          { theater: { name: '극장 B' } }
+        ]
+      };
+
+      mockMovieRepository.findOne.mockResolvedValue(mockMovie);
+
+      const result = await service.findTheatricalMovieDetail(1);
+
+      expect(result).toEqual({
+        id: 1,
+        title: '극장 영화 1',
+        posterPath: '/poster1.jpg',
+        releaseDate: '2023-07-01',
+        overview: '재미있는 영화입니다.',
+        voteAverage: 8.5,
+        voteCount: 1000,
+        providers: ['극장 A', '극장 B'],
+        theMovieDbId: 12345
+      });
+
+      expect(mockMovieRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 1, isTheatricalRelease: true },
+        relations: ['movieTheaters', 'movieTheaters.theater']
+      });
+    });
+
+    it('존재하지 않는 영화 ID로 조회 시 NotFoundException을 던져야 합니다', async () => {
+      mockMovieRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.findTheatricalMovieDetail(999)).rejects.toThrow(NotFoundException);
+    });
+  });
 });

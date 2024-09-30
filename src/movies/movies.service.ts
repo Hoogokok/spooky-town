@@ -203,4 +203,27 @@ export class MoviesService {
       posterPath: movie.poster_path,
     }));
   }
+
+  async findTheatricalMovieDetail(id: number): Promise<MovieDetailResponseDto> {
+    const movie = await this.movieRepository.findOne({
+      where: { id, isTheatricalRelease: true },
+      relations: ['movieTheaters', 'movieTheaters.theater']
+    });
+
+    if (!movie) {
+      throw new NotFoundException(`극장 개봉 영화 ID ${id}를 찾을 수 없습니다.`);
+    }
+
+    return {
+      id: movie.id,
+      title: movie.title,
+      posterPath: movie.poster_path,
+      releaseDate: movie.release_date,
+      overview: movie.overview,
+      voteAverage: movie.vote_average,
+      voteCount: movie.vote_count,
+      providers: movie.movieTheaters.map(mt => mt.theater.name),
+      theMovieDbId: movie.theMovieDbId
+    };
+  }
 }
