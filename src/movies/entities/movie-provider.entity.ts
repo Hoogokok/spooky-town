@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Movie } from './movie.entity';
-@Entity('movie_provider')
+@Entity('movie_providers')
 export class MovieProvider{
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
