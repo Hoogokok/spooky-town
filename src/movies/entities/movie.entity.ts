@@ -1,8 +1,9 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { MovieProvider } from './movie-provider.entity';
+import { MovieTheater } from './movie-theater.entity';
 
 @Entity('movie')
-export class StreamingMovie {
+export class Movie {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
@@ -27,9 +28,12 @@ export class StreamingMovie {
   @Column({ type: 'bigint', name: 'the_movie_db_id' })
   theMovieDbId: number;
 
-  @Column({ type: 'boolean' , name: 'is_theatrical_release'})
+  @Column({ type: 'boolean', name: 'is_theatrical_release' })
   isTheatricalRelease: boolean;
 
   @OneToMany(() => MovieProvider, movieProvider => movieProvider.movie)
   movieProviders: MovieProvider[];
+
+  @OneToMany(() => MovieTheater, movieTheater => movieTheater.movie)
+  movieTheaters: MovieTheater[];
 }
