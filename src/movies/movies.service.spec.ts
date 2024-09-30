@@ -5,11 +5,13 @@ import { Movie } from './entities/movie.entity';
 import { MovieProvider } from './entities/movie-provider.entity';
 import { MovieQueryDto } from './dto/movie-query.dto';
 import { NotFoundException } from '@nestjs/common';
+import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
 
 describe('MoviesService', () => {
   let service: MoviesService;
   let mockMovieRepository: any;
   let mockMovieProviderRepository: any;
+  let mockNetflixHorrorExpiringRepository: any;
 
   beforeEach(async () => {
     const mockQueryBuilder = {
@@ -48,6 +50,11 @@ describe('MoviesService', () => {
       createQueryBuilder: jest.fn(() => mockQueryBuilder)
     };
 
+    mockNetflixHorrorExpiringRepository = {
+      find: jest.fn(),
+      findOne: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MoviesService,
@@ -58,6 +65,10 @@ describe('MoviesService', () => {
         {
           provide: getRepositoryToken(MovieProvider),
           useValue: mockMovieProviderRepository,
+        },
+        {
+          provide: getRepositoryToken(NetflixHorrorExpiring),
+          useValue: mockNetflixHorrorExpiringRepository,
         },
       ],
     }).compile();
@@ -231,6 +242,105 @@ describe('MoviesService', () => {
         'movieProvider.theProviderId = :providerId',
         { providerId: 1 }
       );
+    });
+  });
+
+  describe('getExpiringHorrorMovies', () => {
+    it('만료 예정인 공포 영화 목록을 반환해야 합니다', async () => {
+      const mockExpiringMovies = [
+        { theMovieDbId: 1, expiredDate: new Date('2023-06-30') },
+        { theMovieDbId: 2, expiredDate: new Date('2023-07-15') },
+      ];
+      mockNetflixHorrorExpiringRepository.find.mockResolvedValue(mockExpiringMovies);
+
+      const mockMovies = [
+        {
+          id: 1,
+          title: 'Horror Movie 1',
+          poster_path: '/horror1.jpg',
+          theMovieDbId: 1,
+          movieProviders: [{ theProviderId: 1 }],
+        },
+        {
+          id: 2,
+          title: 'Horror Movie 2',
+          poster_path: '/horror2.jpg',
+          theMovieDbId: 2,
+          movieProviders: [{ theProviderId: 1 }],
+        },
+      ];
+      mockMovieRepository.createQueryBuilder().getMany.mockResolvedValue(mockMovies);
+
+      const result = await service.getExpiringHorrorMovies();
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        id: 1,
+        title: 'Horror Movie 1',
+        posterPath: '/horror1.jpg',
+        expiringDate: '2023-06-30',
+        providers: '넷플릭스',
+      });
+      expect(result[1]).toEqual({
+        id: 2,
+        title: 'Horror Movie 2',
+        posterPath: '/horror2.jpg',
+        expiringDate: '2023-07-15',
+        providers: '넷플릭스',
+      });
+    });
+  });
+
+  describe('getExpiringHorrorMovieDetail', () => {
+    it('만료 예정인 공포 영화의 상세 정보를 반환해야 합니다', async () => {
+      const mockMovie = {
+        id: 1,
+        title: 'Horror Movie 1',
+        poster_path: '/horror1.jpg',
+        overview: 'A scary movie',
+        vote_average: 7.5,
+        vote_count: 1000,
+        theMovieDbId: 1,
+        movieProviders: [{ theProviderId: 1 }],
+      };
+      mockMovieRepository.findOne.mockResolvedValue(mockMovie);
+
+      const mockExpiringMovie = {
+        theMovieDbId: 1,
+        expiredDate: new Date('2023-06-30'),
+      };
+      mockNetflixHorrorExpiringRepository.findOne.mockResolvedValue(mockExpiringMovie);
+
+      const result = await service.getExpiringHorrorMovieDetail(1);
+
+      expect(result).toEqual({
+        id: 1,
+        title: 'Horror Movie 1',
+        posterPath: '/horror1.jpg',
+        expiringDate: '2023-06-30',
+        overview: 'A scary movie',
+        voteAverage: 7.5,
+        voteCount: 1000,
+        providers: ['넷플릭스'],
+        theMovieDbId: 1,
+      });
+    });
+
+    it('존재하지 않는 영화 ID로 조회 시 NotFoundException을 던져야 합니다', async () => {
+      mockMovieRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.getExpiringHorrorMovieDetail(999)).rejects.toThrow(NotFoundException);
+    });
+
+    it('만료 예정이 아닌 영화 ID로 조회 시 NotFoundException을 던져야 합니다', async () => {
+      const mockMovie = {
+        id: 1,
+        theMovieDbId: 1,
+      };
+      mockMovieRepository.findOne.mockResolvedValue(mockMovie);
+      mockNetflixHorrorExpiringRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.getExpiringHorrorMovieDetail(1)).rejects.toThrow(NotFoundException);
     });
   });
 });
