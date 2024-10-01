@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
 import { Movie } from './movie.entity';
 
 @Entity('reviews')
@@ -16,5 +16,9 @@ export class Review {
   reviewContent: string;
 
   @ManyToOne(() => Movie, movie => movie.reviews)
+  @JoinColumn({ name: 'review_movie_id', referencedColumnName: 'theMovieDbId' })
   movie: Movie;
+
+  @Column({ type: 'bigint', name: 'review_movie_id' })
+  review_movie_id: number;
 }
