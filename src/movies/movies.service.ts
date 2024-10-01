@@ -135,6 +135,10 @@ export class MoviesService {
       }
     });
 
+    if (expiringMovies.length === 0) {
+      return [];
+    }
+
     const movieIds = expiringMovies.map(em => em.theMovieDbId);
 
     const movies = await this.movieRepository
