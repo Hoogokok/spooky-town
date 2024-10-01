@@ -76,7 +76,7 @@ export class MoviesService {
   async getStreamingMovieDetail(id: number): Promise<MovieDetailResponseDto> {
     const movie = await this.movieRepository.findOne({
       where: { id, isTheatricalRelease: false },
-      relations: ['movieProviders']
+      relations: ['movieProviders', 'reviews']
     });
 
     if (!movie) {
@@ -107,6 +107,7 @@ export class MoviesService {
     const movies = await this.movieRepository
       .createQueryBuilder('movie')
       .innerJoinAndSelect('movie.movieProviders', 'movieProvider')
+      .innerJoinAndSelect('movie.reviews', 'review')
       .where('movie.isTheatricalRelease = :isTheatrical', { isTheatrical: false })
       .andWhere('movieProvider.theProviderId = :providerId', { providerId })
       .orderBy('movie.release_date', 'DESC')
@@ -158,7 +159,7 @@ export class MoviesService {
   async getExpiringHorrorMovieDetail(id: number): Promise<ExpiringMovieDetailResponseDto> {
     const movie = await this.movieRepository.findOne({
       where: { id },
-      relations: ['movieProviders']
+      relations: ['movieProviders', 'reviews']
     });
 
     if (!movie) {
@@ -177,7 +178,9 @@ export class MoviesService {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
-      expiringDate: expiringMovie.expiredDate.toISOString().split('T')[0],
+      expiringDate: expiringMovie.expiredDate instanceof Date 
+        ? expiringMovie.expiredDate.toISOString().split('T')[0]
+        : expiringMovie.expiredDate,
       overview: movie.overview,
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
@@ -229,7 +232,7 @@ export class MoviesService {
   async findTheatricalMovieDetail(id: number): Promise<MovieDetailResponseDto> {
     const movie = await this.movieRepository.findOne({
       where: { id, isTheatricalRelease: true },
-      relations: ['movieTheaters', 'movieTheaters.theater']
+      relations: ['movieTheaters', 'movieTheaters.theater', 'reviews']
     });
 
     if (!movie) {

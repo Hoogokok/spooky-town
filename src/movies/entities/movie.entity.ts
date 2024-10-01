@@ -26,7 +26,7 @@ export class Movie {
   @Column({ type: 'numeric', precision: 10, scale: 0 })
   vote_count: number;
 
-  @Column({ type: 'bigint', name: 'the_movie_db_id' })
+  @Column({ type: 'bigint', name: 'the_movie_db_id', unique: true })
   theMovieDbId: number;
 
   @Column({ type: 'boolean', name: 'is_theatrical_release' })
