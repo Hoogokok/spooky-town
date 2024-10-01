@@ -1,3 +1,5 @@
+import { ReviewDto } from "./movie-detail-response.dto";
+
 export class ExpiringMovieDetailResponseDto {
     id: number;
     title: string;
@@ -8,4 +10,5 @@ export class ExpiringMovieDetailResponseDto {
     voteCount: number;
     providers: string[];
     theMovieDbId: number;
+    reviews: ReviewDto[];
   }
