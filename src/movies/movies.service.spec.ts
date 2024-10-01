@@ -535,7 +535,7 @@ describe('MoviesService', () => {
 
       expect(mockMovieRepository.findOne).toHaveBeenCalledWith({
         where: { id: 1, isTheatricalRelease: true },
-        relations: ['movieTheaters', 'movieTheaters.theater']
+        relations: ['movieTheaters', 'movieTheaters.theater','reviews']
       });
     });
 
