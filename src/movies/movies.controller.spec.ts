@@ -70,6 +70,13 @@ describe('MoviesController', () => {
         voteCount: 100,
         theMovieDbId: 12345,
         providers: ['넷플릭스'],
+        reviews: [
+          {
+            id: 1,
+            content: '좋은 영화였습니다!',
+            createdAt: expect.any(String)
+          }
+        ]
       };
       jest.spyOn(moviesService, 'getStreamingMovieDetail').mockResolvedValue(result);
 
@@ -108,7 +115,14 @@ describe('MoviesController', () => {
         voteAverage: 7.5,
         voteCount: 1000,
         providers: ['넷플릭스'],
-        theMovieDbId: 12345
+        theMovieDbId: 12345,
+        reviews: [
+          {
+            id: 1,
+            content: '무서워요!',
+            createdAt: expect.any(String)
+          }
+        ]
       };
       jest.spyOn(moviesService, 'getExpiringHorrorMovieDetail').mockResolvedValue(result);
 
@@ -127,7 +141,14 @@ describe('MoviesController', () => {
         voteAverage: 8.5,
         voteCount: 1000,
         providers: ['극장 A', '극장 B'],
-        theMovieDbId: 12345
+        theMovieDbId: 12345,
+        reviews: [
+          {
+            id: 1,
+            content: '좋은 영화였습니다!',
+            createdAt: expect.any(String)
+          }
+        ]
       };
       jest.spyOn(moviesService, 'findTheatricalMovieDetail').mockResolvedValue(result);
 

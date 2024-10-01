@@ -94,7 +94,12 @@ export class MoviesService {
       providers: movie.movieProviders.map(mp => 
         mp.theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
       ),
-      theMovieDbId: movie.theMovieDbId
+      theMovieDbId: movie.theMovieDbId,
+      reviews: movie.reviews.map(review => ({
+        id: review.id,
+        content: review.reviewContent,
+        createdAt: review.created_at.toISOString()
+      }))
     };
   }
 
@@ -179,7 +184,12 @@ export class MoviesService {
       providers: movie.movieProviders.map(mp => 
         mp.theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
       ),
-      theMovieDbId: movie.theMovieDbId
+      theMovieDbId: movie.theMovieDbId,
+      reviews: movie.reviews.map(review => ({
+        id: review.id,
+        content: review.reviewContent,
+        createdAt: review.created_at.toISOString()
+      }))
     };
   }
 
@@ -235,7 +245,12 @@ export class MoviesService {
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
       providers: movie.movieTheaters.map(mt => mt.theater.name),
-      theMovieDbId: movie.theMovieDbId
+      theMovieDbId: movie.theMovieDbId,
+      reviews: movie.reviews.map(review => ({
+        id: review.id,
+        content: review.reviewContent,
+        createdAt: review.created_at.toISOString()
+      }))
     };
   }
 }

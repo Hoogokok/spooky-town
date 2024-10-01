@@ -1,11 +1,5 @@
-export class MovieDetailResponseDto {
-    id: number;
-    title: string;
-    overview: string;
+import { BaseMovieDetailResponseDto } from "./base-movie-detail-response.dto";
+
+export class MovieDetailResponseDto extends BaseMovieDetailResponseDto {
     releaseDate: string;
-    posterPath: string;
-    voteAverage: number;
-    voteCount: number;
-    providers?: string[];
-    theMovieDbId: number;
-  }
+}

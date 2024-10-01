@@ -192,7 +192,14 @@ describe('MoviesService', () => {
         vote_average: 8.5,
         vote_count: 100,
         theMovieDbId: 12345,
-        movieProviders: [{ theProviderId: 1 }]
+        movieProviders: [{ theProviderId: 1 }],
+        reviews: [
+          {
+            id: 1,
+            reviewContent: 'Great movie!',
+            created_at: new Date()
+          }
+        ]
       };
       mockMovieRepository.findOne.mockResolvedValue(mockMovie);
 
@@ -207,7 +214,14 @@ describe('MoviesService', () => {
         voteAverage: 8.5,
         voteCount: 100,
         providers: ['넷플릭스'],
-        theMovieDbId: 12345
+        theMovieDbId: 12345,
+        reviews: [
+          {
+            id: 1,
+            content: 'Great movie!',
+            createdAt: expect.any(String)
+          }
+        ]
       });
     });
 
@@ -306,6 +320,13 @@ describe('MoviesService', () => {
         vote_count: 1000,
         theMovieDbId: 1,
         movieProviders: [{ theProviderId: 1 }],
+        reviews: [
+          {
+            id: 1,
+            reviewContent: 'Scary!',
+            created_at: new Date()
+          }
+        ]
       };
       mockMovieRepository.findOne.mockResolvedValue(mockMovie);
 
@@ -327,6 +348,13 @@ describe('MoviesService', () => {
         voteCount: 1000,
         providers: ['넷플릭스'],
         theMovieDbId: 1,
+        reviews: [
+          {
+            id: 1,
+            content: 'Scary!',
+            createdAt: expect.any(String)
+          }
+        ]
       });
     });
 
@@ -472,6 +500,13 @@ describe('MoviesService', () => {
         movieTheaters: [
           { theater: { name: '극장 A' } },
           { theater: { name: '극장 B' } }
+        ],
+        reviews: [
+          {
+            id: 1,
+            reviewContent: '좋은 영화였습니다!',
+            created_at: new Date()
+          }
         ]
       };
 
@@ -488,7 +523,14 @@ describe('MoviesService', () => {
         voteAverage: 8.5,
         voteCount: 1000,
         providers: ['극장 A', '극장 B'],
-        theMovieDbId: 12345
+        theMovieDbId: 12345,
+        reviews: [
+          {
+            id: 1,
+            content: '좋은 영화였습니다!',
+            createdAt: expect.any(String)
+          }
+        ]
       });
 
       expect(mockMovieRepository.findOne).toHaveBeenCalledWith({
