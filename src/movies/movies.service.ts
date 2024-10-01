@@ -178,7 +178,9 @@ export class MoviesService {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
-      expiringDate: expiringMovie.expiredDate.toISOString().split('T')[0],
+      expiringDate: expiringMovie.expiredDate instanceof Date 
+        ? expiringMovie.expiredDate.toISOString().split('T')[0]
+        : expiringMovie.expiredDate,
       overview: movie.overview,
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
@@ -232,7 +234,7 @@ export class MoviesService {
       where: { id, isTheatricalRelease: true },
       relations: ['movieTheaters', 'movieTheaters.theater', 'reviews']
     });
-    console.log('movie', movie);
+
     if (!movie) {
       throw new NotFoundException(`극장 개봉 영화 ID ${id}를 찾을 수 없습니다.`);
     }
