@@ -1,18 +1,5 @@
-export class MovieDetailResponseDto {
-    id: number;
-    title: string;
-    overview: string;
-    releaseDate: string;
-    posterPath: string;
-    voteAverage: number;
-    voteCount: number;
-    providers?: string[];
-    theMovieDbId: number;
-    reviews: ReviewDto[];
-}
+import { BaseMovieDetailResponseDto } from "./base-movie-detail-response.dto";
 
-export class ReviewDto {
-    id: number;
-    content: string;
-    createdAt: string; // ISO 8601 형식의 문자열
+export class MovieDetailResponseDto extends BaseMovieDetailResponseDto {
+    releaseDate: string;
 }

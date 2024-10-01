@@ -1,14 +1,5 @@
-import { ReviewDto } from "./movie-detail-response.dto";
+import { BaseMovieDetailResponseDto } from "./base-movie-detail-response.dto";
 
-export class ExpiringMovieDetailResponseDto {
-    id: number;
-    title: string;
-    posterPath: string;
+export class ExpiringMovieDetailResponseDto extends BaseMovieDetailResponseDto {
     expiringDate: string;
-    overview: string;
-    voteAverage: number;
-    voteCount: number;
-    providers: string[];
-    theMovieDbId: number;
-    reviews: ReviewDto[];
-  }
+}
