@@ -76,7 +76,7 @@ export class MoviesService {
   async getStreamingMovieDetail(id: number): Promise<MovieDetailResponseDto> {
     const movie = await this.movieRepository.findOne({
       where: { id, isTheatricalRelease: false },
-      relations: ['movieProviders']
+      relations: ['movieProviders', 'reviews']
     });
 
     if (!movie) {
@@ -107,6 +107,7 @@ export class MoviesService {
     const movies = await this.movieRepository
       .createQueryBuilder('movie')
       .innerJoinAndSelect('movie.movieProviders', 'movieProvider')
+      .innerJoinAndSelect('movie.reviews', 'review')
       .where('movie.isTheatricalRelease = :isTheatrical', { isTheatrical: false })
       .andWhere('movieProvider.theProviderId = :providerId', { providerId })
       .orderBy('movie.release_date', 'DESC')
