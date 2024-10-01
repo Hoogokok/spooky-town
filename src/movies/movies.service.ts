@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { Movie } from './entities/movie.entity';
 import { MovieProvider } from './entities/movie-provider.entity';
 import { MovieResponseDto } from './dto/movie-response.dto';
@@ -117,12 +117,22 @@ export class MoviesService {
   }
 
   async getExpiringHorrorMovies(): Promise<ExpiringMovieResponseDto[]> {
-    const expiringMovies = await this.netflixHorrorExpiringRepository.find();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expiringMovies = await this.netflixHorrorExpiringRepository.find({
+      where: {
+        expiredDate: MoreThanOrEqual(today)
+      },
+      order: {
+        expiredDate: 'ASC'
+      }
+    });
+
     const movieIds = expiringMovies.map(em => em.theMovieDbId);
 
     const movies = await this.movieRepository
       .createQueryBuilder('movie')
-      .innerJoinAndSelect('movie.movieProviders', 'movieProvider')
       .where('movie.theMovieDbId IN (:...movieIds)', { movieIds })
       .getMany();
 
@@ -134,8 +144,8 @@ export class MoviesService {
         posterPath: movie.poster_path,
         expiringDate: expiringMovie.expiredDate instanceof Date 
           ? expiringMovie.expiredDate.toISOString().split('T')[0]
-          : expiringMovie.expiredDate, // 이미 문자열인 경우 그대로 사용
-        providers: movie.movieProviders[0].theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
+          : expiringMovie.expiredDate,
+        providers: "넷플릭스"
       };
     });
   }
