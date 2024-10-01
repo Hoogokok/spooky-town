@@ -7,9 +7,9 @@ import { Theater } from './entities/theater.entity';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
 import { MoviesService } from './movies.service';
 import { MoviesController } from './movies.controller';
-
+import { Review } from './entities/review.entity';
 @Module({
-  imports: [TypeOrmModule.forFeature([Movie, MovieProvider, MovieTheater, Theater, NetflixHorrorExpiring])],
+  imports: [TypeOrmModule.forFeature([Movie, MovieProvider, MovieTheater, Theater, NetflixHorrorExpiring, Review])],
   controllers: [MoviesController],
   providers: [MoviesService],
   exports: [MoviesService]
