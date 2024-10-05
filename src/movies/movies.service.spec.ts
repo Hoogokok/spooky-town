@@ -172,6 +172,28 @@ describe('MoviesService', () => {
       );
     });
 
+    it('네이버 영화만 반환해야 합니다', async () => {
+      mockMovieRepository.createQueryBuilder().getMany.mockResolvedValueOnce([
+        {
+          id: 4,
+          title: 'Naver Movie',
+          poster_path: '/naver.jpg',
+          release_date: '2023-04-01',
+          movieProviders: [{ theProviderId: 4 }]
+        }
+      ]);
+
+      const query: MovieQueryDto = { provider: 'naver', page: 1 };
+      const result = await service.getStreamingMovies(query);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].providers).toBe('네이버');
+      expect(mockMovieRepository.createQueryBuilder().andWhere).toHaveBeenCalledWith(
+        'movieProvider.theProviderId = :providerId',
+        { providerId: 4 }
+      );
+    });
+
     it('프로바이더가 제공되지 않으면 필터를 적용하지 않아야 합니다', async () => {
       const query: MovieQueryDto = { page: 1 };
       await service.getStreamingMovies(query);
