@@ -1,15 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThanOrEqual, Repository } from 'typeorm';
-import { Movie } from './entities/movie.entity';
-import { MovieProvider } from './entities/movie-provider.entity';
-import { MovieResponseDto } from './dto/movie-response.dto';
-import { MovieQueryDto } from './dto/movie-query.dto';
-import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
-import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
-import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
+import { LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
-import { MoreThan, LessThanOrEqual } from 'typeorm';
+import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
+import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
+import { MovieQueryDto } from './dto/movie-query.dto';
+import { MovieResponseDto } from './dto/movie-response.dto';
+import { MovieProvider } from './entities/movie-provider.entity';
+import { Movie } from './entities/movie.entity';
+import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
 
 @Injectable()
 export class MoviesService {
@@ -83,6 +82,7 @@ export class MoviesService {
       throw new NotFoundException(`스트리밍 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
+
     return {
       id: movie.id,
       title: movie.title,
@@ -92,7 +92,7 @@ export class MoviesService {
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
       providers: movie.movieProviders.map(mp => 
-        mp.theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
+        mp.theProviderId.toString() === "1" ? "넷플릭스" : "디즈니플러스"
       ),
       theMovieDbId: movie.theMovieDbId,
       reviews: movie.reviews.map(review => ({
@@ -134,6 +134,10 @@ export class MoviesService {
         expiredDate: 'ASC'
       }
     });
+
+    if (expiringMovies.length === 0) {
+      return [];
+    }
 
     const movieIds = expiringMovies.map(em => em.theMovieDbId);
 
