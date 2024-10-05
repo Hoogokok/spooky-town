@@ -35,7 +35,7 @@ export class MoviesService {
       .skip(skip);
 
     if (provider) {
-      const providerId = provider === "netflix" ? 1 : provider === "disney" ? 2 : provider === "wavve" ? 3 : provider === "naver" ? 4 : 0;
+      const providerId = provider === "netflix" ? 1 : provider === "disney" ? 2 : provider === "wavve" ? 3 : provider === "naver" ? 4 : provider === "googleplay" ? 5 : 0;
       if (providerId !== 0) {
         queryBuilder.andWhere('movieProvider.theProviderId = :providerId', { providerId });
       }
@@ -62,6 +62,8 @@ export class MoviesService {
         return "웨이브";
       case 4:
         return "네이버";
+      case 5:
+        return "구글 플레이";
       default:
         return "알 수 없음";
     }

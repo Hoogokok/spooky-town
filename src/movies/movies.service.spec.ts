@@ -194,6 +194,28 @@ describe('MoviesService', () => {
       );
     });
 
+    it('구글 플레이 영화만 반환해야 합니다', async () => {
+      mockMovieRepository.createQueryBuilder().getMany.mockResolvedValueOnce([
+        {
+          id: 5,
+          title: 'Google Play Movie',
+          poster_path: '/googleplay.jpg',
+          release_date: '2023-05-01',
+          movieProviders: [{ theProviderId: 5 }]
+        }
+      ]);
+
+      const query: MovieQueryDto = { provider: 'googleplay', page: 1 };
+      const result = await service.getStreamingMovies(query);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].providers).toBe('구글 플레이');
+      expect(mockMovieRepository.createQueryBuilder().andWhere).toHaveBeenCalledWith(
+        'movieProvider.theProviderId = :providerId',
+        { providerId: 5 }
+      );
+    });
+
     it('프로바이더가 제공되지 않으면 필터를 적용하지 않아야 합니다', async () => {
       const query: MovieQueryDto = { page: 1 };
       await service.getStreamingMovies(query);
@@ -201,7 +223,7 @@ describe('MoviesService', () => {
       expect(mockMovieRepository.createQueryBuilder().andWhere).not.toHaveBeenCalled();
     });
 
-    it('페이지네이션이 올바르게 적용되어야 합니다', async () => {
+    it('페이지네이션이 올��르게 적용되어야 합니다', async () => {
       const query: MovieQueryDto = { page: 2 };
       await service.getStreamingMovies(query);
 
