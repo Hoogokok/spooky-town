@@ -150,6 +150,28 @@ describe('MoviesService', () => {
       );
     });
 
+    it('웨이브 영화만 반환해야 합니다', async () => {
+      mockMovieRepository.createQueryBuilder().getMany.mockResolvedValueOnce([
+        {
+          id: 3,
+          title: 'Wavve Movie',
+          poster_path: '/wavve.jpg',
+          release_date: '2023-03-01',
+          movieProviders: [{ theProviderId: 3 }]
+        }
+      ]);
+
+      const query: MovieQueryDto = { provider: 'wavve', page: 1 };
+      const result = await service.getStreamingMovies(query);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].providers).toBe('웨이브');
+      expect(mockMovieRepository.createQueryBuilder().andWhere).toHaveBeenCalledWith(
+        'movieProvider.theProviderId = :providerId',
+        { providerId: 3 }
+      );
+    });
+
     it('프로바이더가 제공되지 않으면 필터를 적용하지 않아야 합니다', async () => {
       const query: MovieQueryDto = { page: 1 };
       await service.getStreamingMovies(query);

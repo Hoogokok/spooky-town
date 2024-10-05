@@ -35,7 +35,7 @@ export class MoviesService {
       .skip(skip);
 
     if (provider) {
-      const providerId = provider === "netflix" ? 1 : provider === "disney" ? 2 : 0;
+      const providerId = provider === "netflix" ? 1 : provider === "disney" ? 2 : provider === "wavve" ? 3 : 0;
       if (providerId !== 0) {
         queryBuilder.andWhere('movieProvider.theProviderId = :providerId', { providerId });
       }
@@ -48,8 +48,21 @@ export class MoviesService {
       title: movie.title,
       posterPath: movie.poster_path,
       releaseDate: movie.release_date,
-      providers: movie.movieProviders[0].theProviderId === 1 ? "넷플릭스" : "디즈니플러스"
+      providers: this.getProviderName(movie.movieProviders[0].theProviderId)
     }));
+  }
+
+  private getProviderName(providerId: number): string {
+    switch (providerId) {
+      case 1:
+        return "넷플릭스";
+      case 2:
+        return "디즈니플러스";
+      case 3:
+        return "웨이브";
+      default:
+        return "알 수 없음";
+    }
   }
 
   async getTotalStreamingPages(query: MovieQueryDto): Promise<number> {
