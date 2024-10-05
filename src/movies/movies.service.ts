@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
@@ -22,6 +22,7 @@ export class MoviesService {
   ) {}
 
   async getStreamingMovies(query: MovieQueryDto): Promise<MovieResponseDto[]> {
+    Logger.log(query);
     const { provider, page = 1 } = query;
     const itemsPerPage = 6;
     const skip = (page - 1) * itemsPerPage;
@@ -42,7 +43,7 @@ export class MoviesService {
     }
 
     const movies = await queryBuilder.getMany();
-
+    
     return movies.map(movie => ({
       id: movie.id,
       title: movie.title,
@@ -53,16 +54,16 @@ export class MoviesService {
   }
 
   private getProviderName(providerId: number): string {
-    switch (providerId) {
-      case 1:
+    switch (providerId.toString()) {
+      case "1":
         return "넷플릭스";
-      case 2:
+      case "2":
         return "디즈니플러스";
-      case 3:
+      case "3":
         return "웨이브";
-      case 4:
+      case "4":
         return "네이버";
-      case 5:
+      case "5":
         return "구글 플레이";
       default:
         return "알 수 없음";
@@ -109,7 +110,7 @@ export class MoviesService {
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
       providers: movie.movieProviders.map(mp => 
-        mp.theProviderId.toString() === "1" ? "넷플릭스" : "디즈니플러스"
+        this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,
       reviews: movie.reviews.map(review => ({
@@ -135,7 +136,7 @@ export class MoviesService {
       title: movie.title,
       posterPath: movie.poster_path,
       releaseDate: movie.release_date,
-      providers: providerId === 1 ? "넷플릭스" : "디즈니플러스"
+      providers: this.getProviderName(movie.movieProviders[0].theProviderId)
     }));
   }
 
@@ -226,7 +227,8 @@ export class MoviesService {
       relations: ['movieTheaters', 'movieTheaters.theater'],
       order: { release_date: 'ASC' },
     });
-    return movies.map((movie) => ({
+    const filteredMovies = movies.filter(movie => movie.movieTheaters.length > 0);
+    return filteredMovies.map((movie) => ({
       id: movie.id,
       title: movie.title,
       releaseDate: movie.release_date,
