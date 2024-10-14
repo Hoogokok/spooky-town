@@ -227,8 +227,7 @@ export class MoviesService {
       relations: ['movieTheaters', 'movieTheaters.theater'],
       order: { release_date: 'ASC' },
     });
-    const filteredMovies = movies.filter(movie => movie.movieTheaters.length > 0);
-    return filteredMovies.map((movie) => ({
+    return movies.map((movie) => ({
       id: movie.id,
       title: movie.title,
       releaseDate: movie.release_date,
@@ -243,8 +242,10 @@ export class MoviesService {
         isTheatricalRelease: true
       },
       order: { release_date: 'DESC' },
+      relations: ['movieTheaters', 'movieTheaters.theater'],
     });
-    return movies.map((movie) => ({
+    const filteredMovies = movies.filter(movie => movie.movieTheaters.length > 0);
+    return filteredMovies.map((movie) => ({
       id: movie.id,
       title: movie.title,
       releaseDate: movie.release_date,
