@@ -274,30 +274,42 @@ describe('MoviesService', () => {
 
       const result = await service.getStreamingMovieDetail(1);
 
-      expect(result).toEqual({
-        id: 1,
-        title: 'Test Movie',
-        posterPath: '/test.jpg',
-        releaseDate: '2023-01-01',
-        overview: 'Test overview',
-        voteAverage: 8.5,
-        voteCount: 100,
-        providers: ['넷플릭스'],
-        theMovieDbId: 12345,
-        reviews: [
-          {
-            id: 1,
-            content: 'Great movie!',
-            createdAt: expect.any(String)
-          }
-        ]
-      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          id: 1,
+          title: 'Test Movie',
+          posterPath: '/test.jpg',
+          releaseDate: '2023-01-01',
+          overview: 'Test overview',
+          voteAverage: 8.5,
+          voteCount: 100,
+          providers: ['넷플릭스'],
+          theMovieDbId: 12345,
+          reviews: [
+            {
+              id: 1,
+              content: 'Great movie!',
+              createdAt: expect.any(String)
+            }
+          ]
+        });
+      } else {
+        fail('Expected success, but got failure');
+      }
     });
 
-    it('존재하지 않는 영화 ID로 조회 시 NotFoundException을 던져야 합니다', async () => {
+    it('존재하지 않는 영화 ID로 조회 시 실패 결과를 반환해야 합니다', async () => {
       mockMovieRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getStreamingMovieDetail(999)).rejects.toThrow(NotFoundException);
+      const result = await service.getStreamingMovieDetail(999);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect((result as Failure<string>).error).toBe('스트리밍 영화 ID 999를 찾을 수 없습니다.');
+      } else {
+        fail('Expected failure, but got success');
+      }
     });
   });
 

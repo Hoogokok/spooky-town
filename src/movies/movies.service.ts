@@ -91,18 +91,17 @@ export class MoviesService {
     return Math.ceil(totalCount / itemsPerPage);
   }
 
-  async getStreamingMovieDetail(id: number): Promise<MovieDetailResponseDto> {
+  async getStreamingMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
     const movie = await this.movieRepository.findOne({
       where: { id, isTheatricalRelease: false },
       relations: ['movieProviders', 'reviews']
     });
 
     if (!movie) {
-      throw new NotFoundException(`스트리밍 영화 ID ${id}를 찾을 수 없습니다.`);
+      return failure(`스트리밍 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-
-    return {
+    const result: MovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -120,6 +119,8 @@ export class MoviesService {
         createdAt: review.created_at.toISOString()
       }))
     };
+
+    return success(result);
   }
 
   async getProviderMovies(providerId: number): Promise<MovieResponseDto[]> {
