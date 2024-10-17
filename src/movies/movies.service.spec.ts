@@ -7,6 +7,9 @@ import { MovieProvider } from './entities/movie-provider.entity';
 import { Movie } from './entities/movie.entity';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
 import { MoviesService } from './movies.service';
+import { Result, Failure } from '../common/result';
+import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
+import { LessThanOrEqual } from 'typeorm';
 
 describe('MoviesService', () => {
   let service: MoviesService;
@@ -223,7 +226,7 @@ describe('MoviesService', () => {
       expect(mockMovieRepository.createQueryBuilder().andWhere).not.toHaveBeenCalled();
     });
 
-    it('페이지네이션이 올��르게 적용되어야 합니다', async () => {
+    it('페이지네이션이 올르게 적용되어야 합니다', async () => {
       const query: MovieQueryDto = { page: 2 };
       await service.getStreamingMovies(query);
 
@@ -404,33 +407,45 @@ describe('MoviesService', () => {
 
       const result = await service.getExpiringHorrorMovieDetail(1);
 
-      expect(result).toEqual({
-        id: 1,
-        title: 'Horror Movie 1',
-        posterPath: '/horror1.jpg',
-        expiringDate: '2023-06-30',
-        overview: 'A scary movie',
-        voteAverage: 7.5,
-        voteCount: 1000,
-        providers: ['넷플릭스'],
-        theMovieDbId: 1,
-        reviews: [
-          {
-            id: 1,
-            content: 'Scary!',
-            createdAt: expect.any(String)
-          }
-        ]
-      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          id: 1,
+          title: 'Horror Movie 1',
+          posterPath: '/horror1.jpg',
+          expiringDate: '2023-06-30',
+          overview: 'A scary movie',
+          voteAverage: 7.5,
+          voteCount: 1000,
+          providers: ['넷플릭스'],
+          theMovieDbId: 1,
+          reviews: [
+            {
+              id: 1,
+              content: 'Scary!',
+              createdAt: expect.any(String)
+            }
+          ]
+        });
+      } else {
+        fail('Expected success, but got failure');
+      }
     });
 
-    it('존재하지 않는 영화 ID로 조회 시 NotFoundException을 던져야 합니다', async () => {
+    it('존재하지 않는 영화 ID로 조회 시 실패 결과를 반환해야 합니다', async () => {
       mockMovieRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getExpiringHorrorMovieDetail(999)).rejects.toThrow(NotFoundException);
+      const result: Result<ExpiringMovieDetailResponseDto, string> = await service.getExpiringHorrorMovieDetail(999);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect((result as Failure<string>).error).toBe('영화 ID 999를 찾을 수 없습니다.');
+      } else {
+        fail('Expected failure, but got success');
+      }
     });
 
-    it('만료 예정이 아닌 영화 ID로 조회 시 NotFoundException을 던져야 합니다', async () => {
+    it('만료 예정이 아닌 영화 ID로 조회 시 실패 결과를 반환해야 합니다', async () => {
       const mockMovie = {
         id: 1,
         theMovieDbId: 1,
@@ -438,7 +453,14 @@ describe('MoviesService', () => {
       mockMovieRepository.findOne.mockResolvedValue(mockMovie);
       mockNetflixHorrorExpiringRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getExpiringHorrorMovieDetail(1)).rejects.toThrow(NotFoundException);
+      const result: Result<ExpiringMovieDetailResponseDto, string> = await service.getExpiringHorrorMovieDetail(1);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect((result as Failure<string>).error).toBe('만료 예정인 영화 ID 1를 찾을 수 없습니다.');
+      } else {
+        fail('Expected failure, but got success');
+      }
     });
   });
 
@@ -511,14 +533,14 @@ describe('MoviesService', () => {
           title: '개봉된 영화 1',
           release_date: '2023-05-01',
           poster_path: '/poster1.jpg',
-          isTheatricalRelease: true,
+          movieTheaters: [{ theater: { name: '극장 A' } }],
         },
         {
           id: 2,
           title: '개봉된 영화 2',
           release_date: '2023-05-15',
           poster_path: '/poster2.jpg',
-          isTheatricalRelease: true,
+          movieTheaters: [],
         },
       ];
 
@@ -533,20 +555,15 @@ describe('MoviesService', () => {
           releaseDate: '2023-05-01',
           posterPath: '/poster1.jpg',
         },
-        {
-          id: 2,
-          title: '개봉된 영화 2',
-          releaseDate: '2023-05-15',
-          posterPath: '/poster2.jpg',
-        },
       ]);
 
       expect(mockMovieRepository.find).toHaveBeenCalledWith({
         where: { 
-          release_date: expect.any(Object),
+          release_date: LessThanOrEqual('2023-06-01'),
           isTheatricalRelease: true
         },
         order: { release_date: 'DESC' },
+        relations: ['movieTheaters', 'movieTheaters.theater'],
       });
     });
   });

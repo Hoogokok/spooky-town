@@ -9,6 +9,7 @@ import { MovieResponseDto } from './dto/movie-response.dto';
 import { MovieProvider } from './entities/movie-provider.entity';
 import { Movie } from './entities/movie.entity';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
+import { Result, success, failure } from '../common/result';
 
 @Injectable()
 export class MoviesService {
@@ -178,14 +179,14 @@ export class MoviesService {
     });
   }
 
-  async getExpiringHorrorMovieDetail(id: number): Promise<ExpiringMovieDetailResponseDto> {
+  async getExpiringHorrorMovieDetail(id: number): Promise<Result<ExpiringMovieDetailResponseDto, string>> {
     const movie = await this.movieRepository.findOne({
       where: { id },
       relations: ['movieProviders', 'reviews']
     });
 
     if (!movie) {
-      throw new NotFoundException(`영화 ID ${id}를 찾을 수 없습니다.`);
+      return failure(`영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
     const expiringMovie = await this.netflixHorrorExpiringRepository.findOne({
@@ -193,10 +194,10 @@ export class MoviesService {
     });
 
     if (!expiringMovie) {
-      throw new NotFoundException(`만료 예정인 영화 ID ${id}를 찾을 수 없습니다.`);
+      return failure(`만료 예정인 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-    return {
+    const result: ExpiringMovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -216,6 +217,8 @@ export class MoviesService {
         createdAt: review.created_at.toISOString()
       }))
     };
+
+    return success(result);
   }
 
   async findUpcomingMovies(today: string = new Date().toISOString()): Promise<MovieResponseDto[]> {
@@ -244,7 +247,7 @@ export class MoviesService {
       order: { release_date: 'DESC' },
       relations: ['movieTheaters', 'movieTheaters.theater'],
     });
-    const filteredMovies = movies.filter(movie => movie.movieTheaters.length > 0);
+    const filteredMovies = movies.filter(movie => movie.movieTheaters && movie.movieTheaters.length > 0);
     return filteredMovies.map((movie) => ({
       id: movie.id,
       title: movie.title,
