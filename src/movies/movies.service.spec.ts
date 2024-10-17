@@ -609,35 +609,47 @@ describe('MoviesService', () => {
 
       const result = await service.findTheatricalMovieDetail(1);
 
-      expect(result).toEqual({
-        id: 1,
-        title: '극장 영화 1',
-        posterPath: '/poster1.jpg',
-        releaseDate: '2023-07-01',
-        overview: '재미있는 영화입니다.',
-        voteAverage: 8.5,
-        voteCount: 1000,
-        providers: ['극장 A', '극장 B'],
-        theMovieDbId: 12345,
-        reviews: [
-          {
-            id: 1,
-            content: '좋은 영화였습니다!',
-            createdAt: expect.any(String)
-          }
-        ]
-      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).toEqual({
+          id: 1,
+          title: '극장 영화 1',
+          posterPath: '/poster1.jpg',
+          releaseDate: '2023-07-01',
+          overview: '재미있는 영화입니다.',
+          voteAverage: 8.5,
+          voteCount: 1000,
+          providers: ['극장 A', '극장 B'],
+          theMovieDbId: 12345,
+          reviews: [
+            {
+              id: 1,
+              content: '좋은 영화였습니다!',
+              createdAt: expect.any(String)
+            }
+          ]
+        });
+      } else {
+        fail('Expected success, but got failure');
+      }
 
       expect(mockMovieRepository.findOne).toHaveBeenCalledWith({
         where: { id: 1, isTheatricalRelease: true },
-        relations: ['movieTheaters', 'movieTheaters.theater','reviews']
+        relations: ['movieTheaters', 'movieTheaters.theater', 'reviews']
       });
     });
 
-    it('존재하지 않는 영화 ID로 조회 시 NotFoundException을 던져야 합니다', async () => {
+    it('존재하지 않는 영화 ID로 조회 시 실패 결과를 반환해야 합니다', async () => {
       mockMovieRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findTheatricalMovieDetail(999)).rejects.toThrow(NotFoundException);
+      const result = await service.findTheatricalMovieDetail(999);
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        expect((result as Failure<string>).error).toBe('극장 개봉 영화 ID 999를 찾을 수 없습니다.');
+      } else {
+        fail('Expected failure, but got success');
+      }
     });
   });
 });
