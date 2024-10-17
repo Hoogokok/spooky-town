@@ -1,11 +1,11 @@
 export type Result<T, E = Error> = Success<T> | Failure<E>;
 
-interface Success<T> {
+export interface Success<T> {
   success: true;
   data: T;
 }
 
-interface Failure<E> {
+export interface Failure<E> {
   success: false;
   error: E;
 }
