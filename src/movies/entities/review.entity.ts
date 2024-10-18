@@ -1,12 +1,12 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
 import { Movie } from './movie.entity';
-
+import { TimestampColumnType } from '../../common/database/column-types/timestamp';
 @Entity('reviews')
 export class Review {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn({ type: 'integer' })
   id: number;
 
-  @CreateDateColumn({ type: 'timestamp with time zone' })
+  @CreateDateColumn({ type: 'text', transformer: new TimestampColumnType() })
   created_at: Date;
 
   @Column({ type: 'uuid', name: 'review_user_id' })
