@@ -1,10 +1,11 @@
-import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Query, Param, ParseIntPipe, NotFoundException } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { MovieQueryDto } from './dto/movie-query.dto';
 import { MovieResponseDto } from './dto/movie-response.dto';
 import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
 import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
 import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
+import { Failure } from 'src/common/result';
 
 @Controller('movies')
 export class MoviesController {
@@ -23,7 +24,12 @@ export class MoviesController {
 
   @Get('streaming/:id')
   async getStreamingMovieDetail(@Param('id', ParseIntPipe) id: number): Promise<MovieDetailResponseDto> {
-    return this.moviesService.getStreamingMovieDetail(id);
+    const result = await this.moviesService.getStreamingMovieDetail(id);
+    if (result.success) {
+      return result.data;
+    } else {
+      throw new NotFoundException((result as Failure<string>).error);
+    }
   }
 
   @Get('provider/:providerId')
@@ -38,7 +44,12 @@ export class MoviesController {
 
   @Get('expiring-horror/:id')
   async getExpiringHorrorMovieDetail(@Param('id', ParseIntPipe) id: number): Promise<ExpiringMovieDetailResponseDto> {
-    return this.moviesService.getExpiringHorrorMovieDetail(id);
+    const result = await this.moviesService.getExpiringHorrorMovieDetail(id);
+    if (result.success) {
+      return result.data;
+    } else {
+      throw new NotFoundException((result as Failure<string>).error);
+    }
   }
 
   @Get('theater/upcoming')
@@ -53,6 +64,11 @@ export class MoviesController {
 
   @Get('theater/:id')
   async getTheaterMovieDetail(@Param('id', ParseIntPipe) id: number): Promise<MovieDetailResponseDto> {
-    return this.moviesService.findTheatricalMovieDetail(id);
+    const result = await this.moviesService.findTheatricalMovieDetail(id);
+    if (result.success) {
+      return result.data;
+    } else {
+      throw new NotFoundException((result as Failure<string>).error);
+    }
   }
 }

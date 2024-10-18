@@ -6,6 +6,8 @@ import { MovieResponseDto } from './dto/movie-response.dto';
 import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
 import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
 import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
+import { NotFoundException } from '@nestjs/common';
+import { Result } from 'src/common/result';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
@@ -36,7 +38,7 @@ describe('MoviesController', () => {
     moviesService = module.get<MoviesService>(MoviesService);
   });
 
-  it('컨트롤러가 정의되어 있어야 합니다', () => {
+  it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
@@ -60,27 +62,42 @@ describe('MoviesController', () => {
 
   describe('getStreamingMovieDetail', () => {
     it('영화 상세 정보를 반환해야 합니다', async () => {
-      const result: MovieDetailResponseDto = {
-        id: 1,
-        title: 'Test Movie',
-        overview: 'Test Overview',
-        releaseDate: '2023-01-01',
-        posterPath: '/test.jpg',
-        voteAverage: 8.5,
-        voteCount: 100,
-        theMovieDbId: 12345,
-        providers: ['넷플릭스'],
-        reviews: [
-          {
-            id: 1,
-            content: '좋은 영화였습니다!',
-            createdAt: expect.any(String)
-          }
-        ]
+      const mockResult = {
+        success: true,
+        data: {
+          id: 1,
+          title: 'Test Movie',
+          posterPath: '/test.jpg',
+          releaseDate: '2023-01-01',
+          overview: '테스트 영화 설명',
+          voteAverage: 8.5,
+          voteCount: 100,
+          providers: ['넷플릭스'],
+          theMovieDbId: 12345,
+          reviews: [
+            {
+              id: 1,
+              content: '좋은 영화였습니다!',
+              createdAt: '2023-06-01T00:00:00.000Z'
+            }
+          ]
+        },
       };
-      jest.spyOn(moviesService, 'getStreamingMovieDetail').mockResolvedValue(result);
+      jest.spyOn(moviesService, 'getStreamingMovieDetail').mockResolvedValue(mockResult as Result<MovieDetailResponseDto, string>);
 
-      expect(await controller.getStreamingMovieDetail(1)).toBe(result);
+      const result = await controller.getStreamingMovieDetail(1);
+
+      expect(result).toEqual(mockResult.data);
+    });
+
+    it('영화를 찾을 수 없을 때 NotFoundException을 던져야 합니다', async () => {
+      const mockResult = {
+        success: false,
+        error: '영화를 찾을 수 없습니다',
+      };
+      jest.spyOn(moviesService, 'getStreamingMovieDetail').mockResolvedValue(mockResult as Result<MovieDetailResponseDto, string>);
+
+      await expect(controller.getStreamingMovieDetail(999)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -106,53 +123,83 @@ describe('MoviesController', () => {
 
   describe('getExpiringHorrorMovieDetail', () => {
     it('만료 예정인 공포 영화의 상세 정보를 반환해야 합니다', async () => {
-      const result: ExpiringMovieDetailResponseDto = {
-        id: 1,
-        title: 'Horror Movie',
-        expiringDate: '2023-07-31',
-        posterPath: '/horror.jpg',
-        overview: 'A scary movie',
-        voteAverage: 7.5,
-        voteCount: 1000,
-        providers: ['넷플릭스'],
-        theMovieDbId: 12345,
-        reviews: [
-          {
-            id: 1,
-            content: '무서워요!',
-            createdAt: expect.any(String)
-          }
-        ]
+      const mockResult = {
+        success: true,
+        data: {
+          id: 1,
+          title: '공포 영화',
+          posterPath: '/horror.jpg',
+          expiringDate: '2023-07-31',
+          overview: '무서운 영화입니다',
+          voteAverage: 7.5,
+          voteCount: 50,
+          providers: ['넷플릭스'],
+          theMovieDbId: 67890,
+          reviews: [
+            {
+              id: 1,
+              content: '너무 무서웠어요!',
+              createdAt: '2023-06-15T00:00:00.000Z'
+            }
+          ]
+        },
       };
-      jest.spyOn(moviesService, 'getExpiringHorrorMovieDetail').mockResolvedValue(result);
+      jest.spyOn(moviesService, 'getExpiringHorrorMovieDetail').mockResolvedValue(mockResult as Result<ExpiringMovieDetailResponseDto, string>);
 
-      expect(await controller.getExpiringHorrorMovieDetail(1)).toBe(result);
+      const result = await controller.getExpiringHorrorMovieDetail(1);
+
+      expect(result).toEqual(mockResult.data);
+    });
+
+    it('영화를 찾을 수 없을 때 NotFoundException을 던져야 합니다', async () => {
+      const mockResult = {
+        success: false,
+        error: 'Horror movie not found',
+      };
+      jest.spyOn(moviesService, 'getExpiringHorrorMovieDetail').mockResolvedValue(mockResult as Result<ExpiringMovieDetailResponseDto, string>);
+
+      await expect(controller.getExpiringHorrorMovieDetail(1)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('getTheaterMovieDetail', () => {
     it('극장 개봉 영화의 상세 정보를 반환해야 합니다', async () => {
-      const result: MovieDetailResponseDto = {
-        id: 1,
-        title: '극장 영화 1',
-        posterPath: '/poster1.jpg',
-        releaseDate: '2023-07-01',
-        overview: '재미있는 영화입니다.',
-        voteAverage: 8.5,
-        voteCount: 1000,
-        providers: ['극장 A', '극장 B'],
-        theMovieDbId: 12345,
-        reviews: [
-          {
-            id: 1,
-            content: '좋은 영화였습니다!',
-            createdAt: expect.any(String)
-          }
-        ]
+      const mockResult = {
+        success: true,
+        data: {
+          id: 1,
+          title: '극장 영화',
+          posterPath: '/theater.jpg',
+          releaseDate: '2023-07-01',
+          overview: '재미있는 영화입니다',
+          voteAverage: 9.0,
+          voteCount: 200,
+          providers: ['CGV', '메가박스'],
+          theMovieDbId: 13579,
+          reviews: [
+            {
+              id: 1,
+              content: '정말 재미있었어요!',
+              createdAt: '2023-07-02T00:00:00.000Z'
+            }
+          ]
+        },
       };
-      jest.spyOn(moviesService, 'findTheatricalMovieDetail').mockResolvedValue(result);
+      jest.spyOn(moviesService, 'findTheatricalMovieDetail').mockResolvedValue(mockResult as Result<MovieDetailResponseDto, string>);
 
-      expect(await controller.getTheaterMovieDetail(1)).toBe(result);
+      const result = await controller.getTheaterMovieDetail(1);
+
+      expect(result).toEqual(mockResult.data);
+    });
+
+    it('영화를 찾을 수 없을 때 NotFoundException을 던져야 합니다', async () => {
+      const mockResult = {
+        success: false,
+        error: 'Theater movie not found',
+      };
+      jest.spyOn(moviesService, 'findTheatricalMovieDetail').mockResolvedValue(mockResult as Result<MovieDetailResponseDto, string>);
+
+      await expect(controller.getTheaterMovieDetail(1)).rejects.toThrow(NotFoundException);
     });
   });
 

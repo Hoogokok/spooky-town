@@ -9,6 +9,9 @@ import { MovieResponseDto } from './dto/movie-response.dto';
 import { MovieProvider } from './entities/movie-provider.entity';
 import { Movie } from './entities/movie.entity';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
+import { Result, success, failure } from '../common/result';
+import { MovieTheater } from './entities/movie-theater.entity';
+import { Theater } from './entities/theater.entity';
 
 @Injectable()
 export class MoviesService {
@@ -18,7 +21,11 @@ export class MoviesService {
     @InjectRepository(MovieProvider)
     private movieProviderRepository: Repository<MovieProvider>,
     @InjectRepository(NetflixHorrorExpiring)
-    private netflixHorrorExpiringRepository: Repository<NetflixHorrorExpiring>
+    private netflixHorrorExpiringRepository: Repository<NetflixHorrorExpiring>,
+    @InjectRepository(MovieTheater)
+    private movieTheaterRepository: Repository<MovieTheater>,
+    @InjectRepository(Theater)
+    private theaterRepository: Repository<Theater>
   ) {}
 
   async getStreamingMovies(query: MovieQueryDto): Promise<MovieResponseDto[]> {
@@ -90,18 +97,17 @@ export class MoviesService {
     return Math.ceil(totalCount / itemsPerPage);
   }
 
-  async getStreamingMovieDetail(id: number): Promise<MovieDetailResponseDto> {
+  async getStreamingMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
     const movie = await this.movieRepository.findOne({
       where: { id, isTheatricalRelease: false },
       relations: ['movieProviders', 'reviews']
     });
 
     if (!movie) {
-      throw new NotFoundException(`스트리밍 영화 ID ${id}를 찾을 수 없습니다.`);
+      return failure(`스트리밍 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-
-    return {
+    const result: MovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -119,6 +125,8 @@ export class MoviesService {
         createdAt: review.created_at.toISOString()
       }))
     };
+
+    return success(result);
   }
 
   async getProviderMovies(providerId: number): Promise<MovieResponseDto[]> {
@@ -178,14 +186,14 @@ export class MoviesService {
     });
   }
 
-  async getExpiringHorrorMovieDetail(id: number): Promise<ExpiringMovieDetailResponseDto> {
+  async getExpiringHorrorMovieDetail(id: number): Promise<Result<ExpiringMovieDetailResponseDto, string>> {
     const movie = await this.movieRepository.findOne({
       where: { id },
       relations: ['movieProviders', 'reviews']
     });
 
     if (!movie) {
-      throw new NotFoundException(`영화 ID ${id}를 찾을 수 없습니다.`);
+      return failure(`영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
     const expiringMovie = await this.netflixHorrorExpiringRepository.findOne({
@@ -193,10 +201,10 @@ export class MoviesService {
     });
 
     if (!expiringMovie) {
-      throw new NotFoundException(`만료 예정인 영화 ID ${id}를 찾을 수 없습니다.`);
+      return failure(`만료 예정인 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-    return {
+    const result: ExpiringMovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -216,6 +224,8 @@ export class MoviesService {
         createdAt: review.created_at.toISOString()
       }))
     };
+
+    return success(result);
   }
 
   async findUpcomingMovies(today: string = new Date().toISOString()): Promise<MovieResponseDto[]> {
@@ -244,7 +254,7 @@ export class MoviesService {
       order: { release_date: 'DESC' },
       relations: ['movieTheaters', 'movieTheaters.theater'],
     });
-    const filteredMovies = movies.filter(movie => movie.movieTheaters.length > 0);
+    const filteredMovies = movies.filter(movie => movie.movieTheaters && movie.movieTheaters.length > 0);
     return filteredMovies.map((movie) => ({
       id: movie.id,
       title: movie.title,
@@ -253,17 +263,17 @@ export class MoviesService {
     }));
   }
 
-  async findTheatricalMovieDetail(id: number): Promise<MovieDetailResponseDto> {
+  async findTheatricalMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
     const movie = await this.movieRepository.findOne({
       where: { id, isTheatricalRelease: true },
       relations: ['movieTheaters', 'movieTheaters.theater', 'reviews']
     });
 
     if (!movie) {
-      throw new NotFoundException(`극장 개봉 영화 ID ${id}를 찾을 수 없습니다.`);
+      return failure(`극장 개봉 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-    return {
+    const result: MovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -279,5 +289,7 @@ export class MoviesService {
         createdAt: review.created_at.toISOString()
       }))
     };
+
+    return success(result);
   }
 }

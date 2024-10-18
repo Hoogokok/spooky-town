@@ -1,29 +1,29 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { MovieProvider } from './movie-provider.entity';
 import { MovieTheater } from './movie-theater.entity';
-import { Review } from './review.entity'; // 이 줄을 추가하세요
+import { Review } from './review.entity'; 
 
 @Entity('movie')
 export class Movie {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn({ type: 'integer' })
   id: number;
 
   @Column({ type: 'text' })
   title: string;
 
-  @Column({ type: 'character varying' })
+  @Column({ type: 'text', nullable: true })
   release_date: string;
 
-  @Column({ type: 'character varying' })
+  @Column({ type: 'text', nullable: true })
   poster_path: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   overview: string;
 
-  @Column({ type: 'numeric', precision: 3, scale: 1 })
+  @Column({ type: 'numeric', precision: 3, scale: 1, nullable: true })
   vote_average: number;
 
-  @Column({ type: 'numeric', precision: 10, scale: 0 })
+  @Column({ type: 'numeric', precision: 10, scale: 0, nullable: true })
   vote_count: number;
 
   @Column({ type: 'bigint', name: 'the_movie_db_id', unique: true })
