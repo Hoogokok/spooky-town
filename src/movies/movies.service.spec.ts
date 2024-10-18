@@ -456,4 +456,37 @@ describe('MoviesService', () => {
       });
     });
   });
+
+  describe('getProviderMovies', () => {
+    it('특정 제공자의 영화 목록을 반환해야 합니다', async () => {
+      // 테스트 데이터 준비
+      const movie = await movieRepository.save({
+        id: 1,
+        title: 'Provider Movie',
+        poster_path: '/provider.jpg',
+        release_date: '2023-01-01',
+        isTheatricalRelease: false,
+        overview: 'Provider movie overview',
+        vote_average: 7.0,
+        vote_count: 150,
+        theMovieDbId: 1001,
+      });
+
+      await movieProviderRepository.save({
+        movie: movie,
+        theProviderId: 1,
+      });
+
+      const result = await service.getProviderMovies(1);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        id: 1,
+        title: 'Provider Movie',
+        posterPath: '/provider.jpg',
+        releaseDate: '2023-01-01',
+        providers: '넷플릭스', // 제공자 이름 추가
+      });
+    });
+  });
 });
