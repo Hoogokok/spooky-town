@@ -133,7 +133,7 @@ export class MoviesService {
     const movies = await this.movieRepository
       .createQueryBuilder('movie')
       .innerJoinAndSelect('movie.movieProviders', 'movieProvider')
-      .innerJoinAndSelect('movie.reviews', 'review')
+      .leftJoinAndSelect('movie.reviews', 'review')
       .where('movie.isTheatricalRelease = :isTheatrical', { isTheatrical: false })
       .andWhere('movieProvider.theProviderId = :providerId', { providerId })
       .orderBy('movie.release_date', 'DESC')
@@ -144,7 +144,7 @@ export class MoviesService {
       title: movie.title,
       posterPath: movie.poster_path,
       releaseDate: movie.release_date,
-      providers: this.getProviderName(movie.movieProviders[0].theProviderId)
+      providers: this.getProviderName(providerId)
     }));
   }
 
