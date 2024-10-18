@@ -3,7 +3,7 @@ import { MovieTheater } from './movie-theater.entity';
 
 @Entity('theaters')
 export class Theater {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn({ type: 'integer' })
   id: number;
 
   @Column({ type: 'text' })

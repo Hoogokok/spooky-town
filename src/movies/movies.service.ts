@@ -10,6 +10,8 @@ import { MovieProvider } from './entities/movie-provider.entity';
 import { Movie } from './entities/movie.entity';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
 import { Result, success, failure } from '../common/result';
+import { MovieTheater } from './entities/movie-theater.entity';
+import { Theater } from './entities/theater.entity';
 
 @Injectable()
 export class MoviesService {
@@ -19,7 +21,11 @@ export class MoviesService {
     @InjectRepository(MovieProvider)
     private movieProviderRepository: Repository<MovieProvider>,
     @InjectRepository(NetflixHorrorExpiring)
-    private netflixHorrorExpiringRepository: Repository<NetflixHorrorExpiring>
+    private netflixHorrorExpiringRepository: Repository<NetflixHorrorExpiring>,
+    @InjectRepository(MovieTheater)
+    private movieTheaterRepository: Repository<MovieTheater>,
+    @InjectRepository(Theater)
+    private theaterRepository: Repository<Theater>
   ) {}
 
   async getStreamingMovies(query: MovieQueryDto): Promise<MovieResponseDto[]> {

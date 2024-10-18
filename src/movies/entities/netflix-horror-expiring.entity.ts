@@ -2,10 +2,10 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('netflix_horror_expiring')
 export class NetflixHorrorExpiring {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn({ type: 'integer' })
   id: number;
 
-  @Column({ type: 'character varying' })
+  @Column({ type: 'text' })
   title: string;
 
   @Column({ type: 'date', name: 'expired_date' })
