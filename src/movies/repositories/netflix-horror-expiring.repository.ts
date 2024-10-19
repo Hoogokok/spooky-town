@@ -31,4 +31,8 @@ export class NetflixHorrorExpiringRepository {
   async clear() {
     await this.repository.clear();
   }
+
+  async save(netflixHorrorExpiring: Partial<NetflixHorrorExpiring>): Promise<NetflixHorrorExpiring> {
+    return this.repository.save(netflixHorrorExpiring);
+  }
 }
