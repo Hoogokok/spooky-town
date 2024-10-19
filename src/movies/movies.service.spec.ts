@@ -18,7 +18,13 @@ import { createTestNetflixHorrorExpiring } from './test/factories/netflix-horror
 describe('MoviesService', () => {
   let service: MoviesService;
   let dataSource: DataSource;
-  const expired_date = new Date();
+  let expired_date: Date;
+
+  beforeEach(() => {
+    expired_date = new Date();
+    expired_date.setUTCDate(expired_date.getUTCDate() + 30);
+    expired_date.setUTCHours(0, 0, 0, 0); 
+  });
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
