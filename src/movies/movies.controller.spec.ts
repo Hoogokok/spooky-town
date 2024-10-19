@@ -10,20 +10,20 @@ import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity
 import { MovieTheater } from './entities/movie-theater.entity';
 import { Theater } from './entities/theater.entity';
 import { Review } from './entities/review.entity';
-import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { MovieRepository } from './repositories/movie.repository';
+import { NetflixHorrorExpiringRepository } from './repositories/netflix-horror-expiring.repository';
+import { createTestMovie, createTestMovieProvider } from './test/factories/movie.factory';
+import { createTestNetflixHorrorExpiring } from './test/factories/netflix-horror-expiring.factory';
 
 describe('MoviesController', () => {
   let controller: MoviesController;
   let module: TestingModule;
-  let movieRepository: Repository<Movie>;
-  let movieProviderRepository: Repository<MovieProvider>;
-  let netflixHorrorExpiringRepository: Repository<NetflixHorrorExpiring>;
-  let movieTheaterRepository: Repository<MovieTheater>;
-  let theaterRepository: Repository<Theater>;
-  const pastDate = new Date();
-  const today = pastDate.toISOString().split('T')[0];
-  const tommorow = new Date(pastDate.setDate(pastDate.getDate() + 1)).toISOString().split('T')[0];
+  let dataSource: DataSource;
+  let today: Date;
+  let tomorrow: Date;
+
   beforeAll(async () => {
     module = await Test.createTestingModule({
       imports: [
@@ -31,15 +31,11 @@ describe('MoviesController', () => {
         TypeOrmModule.forFeature([Movie, MovieProvider, NetflixHorrorExpiring, MovieTheater, Theater, Review]),
       ],
       controllers: [MoviesController],
-      providers: [MoviesService],
+      providers: [MoviesService, MovieRepository, NetflixHorrorExpiringRepository],
     }).compile();
 
     controller = module.get<MoviesController>(MoviesController);
-    movieRepository = module.get('MovieRepository');
-    movieProviderRepository = module.get('MovieProviderRepository');
-    netflixHorrorExpiringRepository = module.get('NetflixHorrorExpiringRepository');
-    movieTheaterRepository = module.get('MovieTheaterRepository');
-    theaterRepository = module.get('TheaterRepository');
+    dataSource = module.get<DataSource>(DataSource);
   });
 
   afterAll(async () => {
@@ -47,79 +43,76 @@ describe('MoviesController', () => {
   });
 
   beforeEach(async () => {
-    await movieProviderRepository.clear();
-    await netflixHorrorExpiringRepository.clear();
-    await movieTheaterRepository.clear();
-    await theaterRepository.clear();
-    await movieRepository.clear();
+    await dataSource.synchronize(true);
 
-    const streamingMovie = await movieRepository.save({
-      id: 1,
-      title: '테스트 영화',
-      release_date: '2023-01-01',
-      poster_path: '/test.jpg',
-      theMovieDbId: 12345,
-      overview: '테스트 영화 설명',
-      runtime: 120,
-      vote_average: 7.5,
-      vote_count: 1000,
-      popularity: 50.5,
-      isTheatricalRelease: false,
-    });
+    today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    tomorrow = new Date(today);
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
 
-    const releaseMovie = await movieRepository.save({
-      id: 2,
-      title: '테스트 영화2',
-      release_date: today,
-      poster_path: '/test2.jpg',
-      theMovieDbId: 123456,
-      overview: '테스트 영화 설명2',
-      runtime: 120,
-      vote_average: 7.5,
-      vote_count: 1000,
-      popularity: 50.5,
-      isTheatricalRelease: true,
-    });
+    await dataSource.transaction(async (transactionalEntityManager) => {
+      const streamingMovie = await transactionalEntityManager.save(Movie, createTestMovie({
+        id: 1,
+        title: '테스트 영화',
+        release_date: '2023-01-01',
+        poster_path: '/test.jpg',
+        theMovieDbId: 12345,
+        overview: '테스트 영화 설명',
+        vote_average: 7.5,
+        vote_count: 1000,
+        isTheatricalRelease: false,
+      }));
 
-    const upcomingMovie = await movieRepository.save({
-      id: 3,
-      title: '테스트 영화3',
-      release_date: tommorow,
-      poster_path: '/test3.jpg',
-      theMovieDbId: 1234567,
-      overview: '테스트 영화 설명3',
-      runtime: 120,
-      vote_average: 7.5,
-      vote_count: 1000,
-      popularity: 50.5,
-      isTheatricalRelease: true,
-    });
+      await transactionalEntityManager.save(MovieProvider, createTestMovieProvider({
+        movie: streamingMovie,
+        theProviderId: 1, // Netflix
+      }));
 
-    await movieProviderRepository.save({
-      movie: streamingMovie,
-      theProviderId: 1, // Netflix
-    });
+      const releaseMovie = await transactionalEntityManager.save(Movie, createTestMovie({
+        id: 2,
+        title: '테스트 영화2',
+        release_date: today.toISOString().split('T')[0],
+        poster_path: '/test2.jpg',
+        theMovieDbId: 123456,
+        overview: '테스트 영화 설명2',
+        vote_average: 7.5,
+        vote_count: 1000,
+        isTheatricalRelease: true,
+      }));
 
-    await netflixHorrorExpiringRepository.save({
-      id: 1,
-      title: '테스트 영화',
-      expiredDate: tommorow,
-      theMovieDbId: streamingMovie.theMovieDbId,
-    });
+      const upcomingMovie = await transactionalEntityManager.save(Movie, createTestMovie({
+        id: 3,
+        title: '테스트 영화3',
+        release_date: tomorrow.toISOString().split('T')[0],
+        poster_path: '/test3.jpg',
+        theMovieDbId: 1234567,
+        overview: '테스트 영화 설명3',
+        vote_average: 7.5,
+        vote_count: 1000,
+        isTheatricalRelease: true,
+      }));
 
-    const theater = await theaterRepository.save({
-      id: 2,
-      name: '테스트 극장',
-    });
+      await transactionalEntityManager.save(NetflixHorrorExpiring, createTestNetflixHorrorExpiring({
+        id: 1,
+        title: '테스트 영화',
+        expiredDate: tomorrow,
+        theMovieDbId: streamingMovie.theMovieDbId,
+      }));
 
-    await movieTheaterRepository.save({
-      movie: releaseMovie,
-      theater: theater,
-    });
+      const theater = await transactionalEntityManager.save(Theater, {
+        id: 2,
+        name: '테스트 극장',
+      });
 
-    await movieTheaterRepository.save({
-      movie: upcomingMovie,
-      theater: theater,
+      await transactionalEntityManager.save(MovieTheater, {
+        movie: releaseMovie,
+        theater: theater,
+      });
+
+      await transactionalEntityManager.save(MovieTheater, {
+        movie: upcomingMovie,
+        theater: theater,
+      });
     });
   });
 
@@ -171,7 +164,7 @@ describe('MoviesController', () => {
       const result = await controller.getExpiringHorrorMovies();
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('테스트 영화');
-      expect(result[0].expiringDate).toBe(tommorow);
+      expect(result[0].expiringDate).toBe(tomorrow.toISOString().split('T')[0]);
     });
   });
 
@@ -180,7 +173,7 @@ describe('MoviesController', () => {
       const result = await controller.getExpiringHorrorMovieDetail(1);
       expect(result).toBeDefined();
       expect(result.title).toBe('테스트 영화');
-      expect(result.expiringDate).toBe(tommorow);
+      expect(result.expiringDate).toBe(tomorrow.toISOString().split('T')[0]);
     });
 
     it('존재하지 않는 영화 ID로 요청 시 NotFoundException을 던져야 합니다', async () => {
@@ -193,7 +186,7 @@ describe('MoviesController', () => {
       const result = await controller.getUpcomingMovies();
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('테스트 영화3');
-      expect(result[0].releaseDate).toBe(tommorow);
+      expect(result[0].releaseDate).toBe(tomorrow.toISOString().split('T')[0]);
     });
   });
 
@@ -202,7 +195,7 @@ describe('MoviesController', () => {
       const result = await controller.getReleasedMovies();
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe('테스트 영화2');
-      expect(result[0].releaseDate).toBe(today);
+      expect(result[0].releaseDate).toBe(today.toISOString().split('T')[0]);
     });
   });
 
