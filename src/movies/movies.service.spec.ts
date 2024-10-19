@@ -141,10 +141,10 @@ describe('MoviesService', () => {
         poster_path: '/netflix.jpg',
         release_date: '2023-01-01',
         isTheatricalRelease: false,
-        overview: 'Netflix movie overview', // 추가
-        vote_average: 7.5, // 추가
-        vote_count: 100, // 추가
-        theMovieDbId: 1001, // 추가
+        overview: 'Netflix movie overview', 
+        vote_average: 7.5, 
+        vote_count: 100, 
+        theMovieDbId: 1001, 
       });
       await movieProviderRepository.save({
         movie: movie,
