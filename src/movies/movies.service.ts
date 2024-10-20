@@ -102,9 +102,7 @@ export class MoviesService {
     }));
   }
 
-  async getExpiringHorrorMovies(): Promise<ExpiringMovieResponseDto[]> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  async getExpiringHorrorMovies(today: Date): Promise<ExpiringMovieResponseDto[]> {
 
     const expiringMovies = await this.netflixHorrorExpiringRepository.findExpiringMovies(today);
 

@@ -183,7 +183,7 @@ describe('MoviesService', () => {
         const movie = await transactionalEntityManager.save(Movie, createTestMovie({ title: '공포 영화', theMovieDbId: 12345 }));
         await transactionalEntityManager.save(NetflixHorrorExpiring, createTestNetflixHorrorExpiring({ theMovieDbId: movie.theMovieDbId, expiredDate: expired_date }));
 
-        const result = await service.getExpiringHorrorMovies();
+        const result = await service.getExpiringHorrorMovies(new Date("2024-10-20"));
 
         expect(result).toEqual([
           {
