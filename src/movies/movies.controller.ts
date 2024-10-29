@@ -39,7 +39,9 @@ export class MoviesController {
 
   @Get('expiring-horror')
   async getExpiringHorrorMovies(): Promise<ExpiringMovieResponseDto[]> {
-    return this.moviesService.getExpiringHorrorMovies();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return this.moviesService.getExpiringHorrorMovies(today);
   }
 
   @Get('expiring-horror/:id')
