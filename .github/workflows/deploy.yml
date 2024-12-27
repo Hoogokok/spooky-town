@@ -38,9 +38,9 @@ jobs:
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
           
           # 배포 명령어
-          scp -i private_key -r dist package.json pnpm-lock.yaml ecosystem.config.js $USERNAME@$HOST:/home/$USERNAME/spooky-town/
+          scp -i private_key -r dist package.json pnpm-lock.yaml ecosystem.config.js $USERNAME@$HOST:/home/bitnami/spooky-town/
           ssh -i private_key $USERNAME@$HOST '
-            cd /home/$USERNAME/spooky-town
+            cd /home/bitnami/spooky-town
             pnpm install --prod
             pm2 delete spooky-town || true
             pm2 start ecosystem.config.js
