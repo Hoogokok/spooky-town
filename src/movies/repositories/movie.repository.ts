@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Movie } from '../entities/movie.entity';
+import { Review } from '../entities/review.entity';
+import { ReviewRawData } from '../types/review-raw-data.interface';
 import { MoreThan } from 'typeorm';
+import { REVIEW_ORDER, REVIEW_SELECT_FIELDS } from '../constants/review.constants';
 
 @Injectable()
 export class MovieRepository {
@@ -48,17 +51,9 @@ export class MovieRepository {
     return queryBuilder.getCount();
   }
 
-  async findStreamingMovieById(id: number): Promise<Movie | undefined> {
-    return this.repository.findOne({
-      where: { id, isTheatricalRelease: false },
-      relations: ['movieProviders', 'reviews']
-    });
-  }
-
   async findMoviesByProviderId(providerId: number): Promise<Movie[]> {
     return this.repository.createQueryBuilder('movie')
       .innerJoinAndSelect('movie.movieProviders', 'movieProvider')
-      .leftJoinAndSelect('movie.reviews', 'review')
       .where('movie.isTheatricalRelease = :isTheatrical', { isTheatrical: false })
       .andWhere('movieProvider.theProviderId = :providerId', { providerId })
       .orderBy('movie.release_date', 'DESC')
@@ -72,11 +67,18 @@ export class MovieRepository {
       .getMany();
   }
 
-  async findMovieWithProvidersAndReviews(id: number): Promise<Movie | undefined> {
-    return this.repository.findOne({
+  async findMovieWithProvidersAndReviews(id: number): Promise<{ movie: Movie; reviewsRaw: ReviewRawData[] } | undefined> {
+    const movie = await this.repository.findOne({
       where: { id },
-      relations: ['movieProviders', 'reviews']
+      relations: ['movieProviders']
     });
+
+    if (!movie) {
+      return undefined;
+    }
+
+    const reviewsRaw = await this.findReviewsByMovieId(movie.theMovieDbId);
+    return { movie, reviewsRaw };
   }
 
   async findUpcomingMovies(today: string = new Date().toISOString()): Promise<Movie[]> {
@@ -99,14 +101,38 @@ export class MovieRepository {
       .getMany();
   }
 
-  async findTheatricalMovieById(id: number): Promise<Movie | undefined> {
-    return this.repository.findOne({
+  async findTheatricalMovieById(id: number): Promise<{ movie: Movie; reviewsRaw: ReviewRawData[] } | undefined> {
+    const movie = await this.repository.findOne({
       where: { id, isTheatricalRelease: true },
-      relations: ['movieTheaters', 'movieTheaters.theater', 'reviews']
+      relations: ['movieTheaters', 'movieTheaters.theater']
     });
+
+    if (!movie) {
+      return undefined;
+    }
+
+    const reviewsRaw = await this.findReviewsByMovieId(movie.theMovieDbId);
+    return { movie, reviewsRaw };
   }
 
   async clear() {
     await this.repository.clear();
+  }
+
+  async findReviewsByMovieId(movieId: number): Promise<ReviewRawData[]> {
+    return this.repository.manager
+      .createQueryBuilder()
+      .select([
+        REVIEW_SELECT_FIELDS.ID,
+        REVIEW_SELECT_FIELDS.CONTENT,
+        REVIEW_SELECT_FIELDS.CREATED_AT,
+        REVIEW_SELECT_FIELDS.PROFILE_ID,
+        REVIEW_SELECT_FIELDS.PROFILE_NAME
+      ])
+      .from('reviews', 'reviews')
+      .leftJoin('profiles', 'profiles', 'reviews.review_user_id = profiles.id')
+      .where('reviews.review_movie_id = :movieId', { movieId })
+      .orderBy(REVIEW_ORDER.CREATED_AT, REVIEW_ORDER.DESC)
+      .getRawMany();
   }
 }
