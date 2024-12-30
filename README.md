@@ -8,10 +8,26 @@
 린팅: ESLint
 포맷팅: Prettier
 인증: API 키 기반 인증
+배포: AWS Lightsail, GitHub Actions
 ```
 
 ### 프로젝트 설명 
 이 프로젝트는 스푸키 백엔드를 TypeScript와 Nest.js로 다시 작성한 프로젝트입니다. API 키 기반 인증을 사용하여 프론트엔드 서버의 요청만을 허용합니다.
+
+### 배포
+이 프로젝트는 AWS Lightsail에서 호스팅되며, GitHub Actions를 통한 자동 배포가 구성되어 있습니다.
+
+- **배포 환경**: AWS Lightsail (Node.js 블루프린트)
+- **프로세스 관리**: PM2
+- **자동화**: GitHub Actions를 통한 CI/CD
+- **트리거**: main 브랜치에 push 발생 시 자동 배포
+
+배포 프로세스:
+1. GitHub main 브랜치에 코드 push
+2. GitHub Actions 워크플로우 실행
+3. 코드 빌드 및 테스트
+4. AWS Lightsail 인스턴스로 배포
+5. PM2를 통한 애플리케이션 실행
 
 ### 인증
 모든 API 요청은 `X-API-Key` 헤더에 유효한 API 키를 포함해야 합니다. API 키는 환경 변수로 설정되며, 프론트엔드 서버에만 제공됩니다.
