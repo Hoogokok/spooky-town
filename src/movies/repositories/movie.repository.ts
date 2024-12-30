@@ -49,17 +49,9 @@ export class MovieRepository {
     return queryBuilder.getCount();
   }
 
-  async findStreamingMovieById(id: number): Promise<Movie | undefined> {
-    return this.repository.findOne({
-      where: { id, isTheatricalRelease: false },
-      relations: ['movieProviders', 'reviews']
-    });
-  }
-
   async findMoviesByProviderId(providerId: number): Promise<Movie[]> {
     return this.repository.createQueryBuilder('movie')
       .innerJoinAndSelect('movie.movieProviders', 'movieProvider')
-      .leftJoinAndSelect('movie.reviews', 'review')
       .where('movie.isTheatricalRelease = :isTheatrical', { isTheatrical: false })
       .andWhere('movieProvider.theProviderId = :providerId', { providerId })
       .orderBy('movie.release_date', 'DESC')
@@ -73,11 +65,18 @@ export class MovieRepository {
       .getMany();
   }
 
-  async findMovieWithProvidersAndReviews(id: number): Promise<Movie | undefined> {
-    return this.repository.findOne({
+  async findMovieWithProvidersAndReviews(id: number): Promise<{ movie: Movie; reviewsRaw: ReviewRawData[] } | undefined> {
+    const movie = await this.repository.findOne({
       where: { id },
-      relations: ['movieProviders', 'reviews']
+      relations: ['movieProviders']
     });
+
+    if (!movie) {
+      return undefined;
+    }
+
+    const reviewsRaw = await this.findReviewsByMovieId(movie.theMovieDbId);
+    return { movie, reviewsRaw };
   }
 
   async findUpcomingMovies(today: string = new Date().toISOString()): Promise<Movie[]> {
@@ -100,11 +99,18 @@ export class MovieRepository {
       .getMany();
   }
 
-  async findTheatricalMovieById(id: number): Promise<Movie | undefined> {
-    return this.repository.findOne({
+  async findTheatricalMovieById(id: number): Promise<{ movie: Movie; reviewsRaw: ReviewRawData[] } | undefined> {
+    const movie = await this.repository.findOne({
       where: { id, isTheatricalRelease: true },
-      relations: ['movieTheaters', 'movieTheaters.theater', 'reviews']
+      relations: ['movieTheaters', 'movieTheaters.theater']
     });
+
+    if (!movie) {
+      return undefined;
+    }
+
+    const reviewsRaw = await this.findReviewsByMovieId(movie.theMovieDbId);
+    return { movie, reviewsRaw };
   }
 
   async clear() {
@@ -130,7 +136,12 @@ export class MovieRepository {
     return Number(result.count);
   }
 
-  async findReviewsByMovieId(
+  async findReviewsByMovieId(movieId: number): Promise<ReviewRawData[]> {
+    const { reviews } = await this.findReviewsByMovieIdWithTotal(movieId);
+    return reviews;
+  }
+
+  async findReviewsByMovieIdWithTotal(
     movieId: number,
     page: number = 1,
     limit: number = 5

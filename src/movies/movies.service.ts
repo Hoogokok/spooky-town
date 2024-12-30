@@ -12,6 +12,8 @@ import { MovieRepository } from './repositories/movie.repository';
 import { NetflixHorrorExpiringRepository } from './repositories/netflix-horror-expiring.repository';
 import { ReviewQueryDto } from './dto/review-query.dto';
 import { ReviewPageResponseDto } from './dto/review-page-response.dto';
+import { ReviewRawData } from './types/review-raw-data.interface';
+import { ReviewDto } from './dto/review.dto';
 
 @Injectable()
 export class MoviesService {
@@ -64,13 +66,15 @@ export class MoviesService {
   }
 
   async getStreamingMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
-    const movie = await this.movieRepository.findStreamingMovieById(id);
+    const result = await this.movieRepository.findMovieWithProvidersAndReviews(id);
 
-    if (!movie) {
+    if (!result) {
       return failure(`스트리밍 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-    const result: MovieDetailResponseDto = {
+    const { movie, reviewsRaw } = result;
+
+    const response: MovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -82,15 +86,19 @@ export class MoviesService {
         this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,
-      recentReviews: movie.reviews.map(review => ({
+      recentReviews: reviewsRaw.reviews.map(review => ({
         id: review.id,
-        content: review.reviewContent,
-        createdAt: review.created_at.toISOString()
+        content: review.content,
+        createdAt: review.createdAt,
+        profile: {
+          id: review.profileId,
+          name: review.profileName
+        }
       })),
-      totalReviews: movie.reviews.length
+      totalReviews: reviewsRaw.total
     };
 
-    return success(result);
+    return success(response);
   }
 
   async getProviderMovies(providerId: number): Promise<MovieResponseDto[]> {
@@ -130,20 +138,31 @@ export class MoviesService {
     });
   }
 
-  async getExpiringHorrorMovieDetail(id: number): Promise<Result<ExpiringMovieDetailResponseDto, string>> {
-    const movie = await this.movieRepository.findMovieWithProvidersAndReviews(id);
+  private mapReviewToDto = (review: ReviewRawData): ReviewDto => ({
+    id: review.id,
+    content: review.content,
+    createdAt: review.createdAt,
+    profile: {
+      id: review.profileId,
+      name: review.profileName
+    }
+  });
 
-    if (!movie) {
+  async getExpiringHorrorMovieDetail(id: number): Promise<Result<ExpiringMovieDetailResponseDto, string>> {
+    const result = await this.movieRepository.findMovieWithProvidersAndReviews(id);
+
+    if (!result) {
       return failure(`영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
+    const { movie, reviewsRaw } = result;
     const expiringMovie = await this.netflixHorrorExpiringRepository.findByTheMovieDbId(movie.theMovieDbId);
 
     if (!expiringMovie) {
       return failure(`만료 예정인 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-    const result: ExpiringMovieDetailResponseDto = {
+    const response: ExpiringMovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -157,15 +176,19 @@ export class MoviesService {
         mp.theProviderId.toString() === "1" ? "넷플릭스" : "디즈니플러스"
       ),
       theMovieDbId: movie.theMovieDbId,
-      recentReviews: movie.reviews.map(review => ({
+      recentReviews: reviewsRaw.reviews.map(review => ({
         id: review.id,
-        content: review.reviewContent,
-        createdAt: review.created_at.toISOString()
+        content: review.content,
+        createdAt: review.createdAt,
+        profile: {
+          id: review.profileId,
+          name: review.profileName
+        }
       })),
-      totalReviews: movie.reviews.length
+      totalReviews: reviewsRaw.total
     };
 
-    return success(result);
+    return success(response);
   }
 
   async findUpcomingMovies(today: string = new Date().toISOString()): Promise<MovieResponseDto[]> {
@@ -190,13 +213,15 @@ export class MoviesService {
   }
 
   async findTheatricalMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
-    const movie = await this.movieRepository.findTheatricalMovieById(id);
+    const result = await this.movieRepository.findTheatricalMovieById(id);
 
-    if (!movie) {
+    if (!result) {
       return failure(`극장 개봉 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-    const result: MovieDetailResponseDto = {
+    const { movie, reviewsRaw } = result;
+
+    const response: MovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -218,7 +243,7 @@ export class MoviesService {
       totalReviews: movie.reviews.length
     };
 
-    return success(result);
+    return success(response);
   }
 
   async findMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
@@ -268,7 +293,7 @@ export class MoviesService {
       return failure(`영화 ID ${movieId}를 찾을 수 없습니다.`);
     }
 
-    const { reviews, total } = await this.movieRepository.findReviewsByMovieId(
+    const { reviews, total } = await this.movieRepository.findReviewsByMovieIdWithTotal(
       movie.theMovieDbId,
       query.page,
       query.limit
