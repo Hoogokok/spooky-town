@@ -10,6 +10,8 @@ import { MovieProvider } from './entities/movie-provider.entity';
 import { Result, success, failure } from '../common/result';
 import { MovieRepository } from './repositories/movie.repository';
 import { NetflixHorrorExpiringRepository } from './repositories/netflix-horror-expiring.repository';
+import { ReviewQueryDto } from './dto/review-query.dto';
+import { ReviewPageResponseDto } from './dto/review-page-response.dto';
 
 @Injectable()
 export class MoviesService {
@@ -80,11 +82,12 @@ export class MoviesService {
         this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,
-      reviews: movie.reviews.map(review => ({
+      recentReviews: movie.reviews.map(review => ({
         id: review.id,
         content: review.reviewContent,
         createdAt: review.created_at.toISOString()
-      }))
+      })),
+      totalReviews: movie.reviews.length
     };
 
     return success(result);
@@ -154,11 +157,12 @@ export class MoviesService {
         mp.theProviderId.toString() === "1" ? "넷플릭스" : "디즈니플러스"
       ),
       theMovieDbId: movie.theMovieDbId,
-      reviews: movie.reviews.map(review => ({
+      recentReviews: movie.reviews.map(review => ({
         id: review.id,
         content: review.reviewContent,
         createdAt: review.created_at.toISOString()
-      }))
+      })),
+      totalReviews: movie.reviews.length
     };
 
     return success(result);
@@ -202,13 +206,89 @@ export class MoviesService {
       voteCount: movie.vote_count,
       providers: movie.movieTheaters.map(mt => mt.theater.name),
       theMovieDbId: movie.theMovieDbId,
-      reviews: movie.reviews.map(review => ({
+      recentReviews: movie.reviews.map(review => ({
         id: review.id,
         content: review.reviewContent,
-        createdAt: review.created_at.toISOString()
-      }))
+        createdAt: review.created_at.toISOString(),
+        profile: {
+          id: review.reviewUserId,
+          name: review.reviewUserName
+        }
+      })),
+      totalReviews: movie.reviews.length
     };
 
     return success(result);
+  }
+
+  async findMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
+    const movie = await this.movieRepository.findMovieWithRecentReviews(id);
+
+    if (!movie) {
+      return failure(`영화 ID ${id}를 찾을 수 없습니다.`);
+    }
+
+    const totalReviews = await this.movieRepository.getReviewsCount(id);
+
+    const result: MovieDetailResponseDto = {
+      id: movie.id,
+      title: movie.title,
+      posterPath: movie.poster_path,
+      releaseDate: movie.release_date,
+      overview: movie.overview,
+      voteAverage: movie.vote_average,
+      voteCount: movie.vote_count,
+      providers: movie.movieProviders.map(mp =>
+        this.getProviderName(mp.theProviderId)
+      ),
+      theMovieDbId: movie.theMovieDbId,
+      recentReviews: movie.reviews.map(review => ({
+        id: review.id,
+        content: review.reviewContent,
+        createdAt: review.created_at.toISOString(),
+        profile: {
+          id: review.reviewUserId,
+          name: review.reviewUserName
+        }
+      })),
+      totalReviews
+    };
+
+    return success(result);
+  }
+
+  async getMovieReviews(
+    movieType: string,
+    movieId: number,
+    query: ReviewQueryDto
+  ): Promise<Result<ReviewPageResponseDto, string>> {
+    const movie = await this.movieRepository.findMovieWithRecentReviews(movieId);
+
+    if (!movie) {
+      return failure(`영화 ID ${movieId}를 찾을 수 없습니다.`);
+    }
+
+    const { reviews, total } = await this.movieRepository.findReviewsByMovieId(
+      movie.theMovieDbId,
+      query.page,
+      query.limit
+    );
+
+    const totalPages = Math.ceil(total / query.limit);
+
+    return success({
+      reviews: reviews.map(review => ({
+        id: review.id,
+        content: review.content,
+        createdAt: review.createdAt,
+        profile: {
+          id: review.profileId,
+          name: review.profileName
+        }
+      })),
+      totalPages,
+      currentPage: query.page,
+      hasNext: query.page < totalPages
+    });
   }
 }

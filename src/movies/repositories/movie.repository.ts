@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Movie } from '../entities/movie.entity';
 import { MoreThan } from 'typeorm';
+import { ReviewRawData } from '../types/review-raw-data.interface';
 
 @Injectable()
 export class MovieRepository {
@@ -108,5 +109,60 @@ export class MovieRepository {
 
   async clear() {
     await this.repository.clear();
+  }
+
+  async findMovieWithRecentReviews(id: number): Promise<Movie | undefined> {
+    return this.repository.createQueryBuilder('movie')
+      .leftJoinAndSelect('movie.reviews', 'review')
+      .where('movie.id = :id', { id })
+      .orderBy('review.created_at', 'DESC')
+      .take(5)  // 최신 리뷰 5개만
+      .getOne();
+  }
+
+  async getReviewsCount(movieId: number): Promise<number> {
+    const result = await this.repository.createQueryBuilder('movie')
+      .leftJoin('movie.reviews', 'review')
+      .where('movie.id = :movieId', { movieId })
+      .select('COUNT(review.id)', 'count')
+      .getRawOne();
+
+    return Number(result.count);
+  }
+
+  async findReviewsByMovieId(
+    movieId: number,
+    page: number = 1,
+    limit: number = 5
+  ): Promise<{ reviews: ReviewRawData[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [reviews, total] = await Promise.all([
+      this.repository.manager
+        .createQueryBuilder()
+        .select([
+          'reviews.id as id',
+          'reviews.review_content as content',
+          'reviews.created_at as "createdAt"',
+          'reviews.review_user_id as "profileId"',
+          'reviews.review_user_name as "profileName"'
+        ])
+        .from('reviews', 'reviews')
+        .where('reviews.review_movie_id = :movieId', { movieId })
+        .orderBy('reviews.created_at', 'DESC')
+        .limit(limit)
+        .offset(skip)
+        .getRawMany(),
+
+      this.repository.manager
+        .createQueryBuilder()
+        .select('COUNT(*)', 'count')
+        .from('reviews', 'reviews')
+        .where('reviews.review_movie_id = :movieId', { movieId })
+        .getRawOne()
+        .then(result => Number(result.count))
+    ]);
+
+    return { reviews, total };
   }
 }

@@ -21,4 +21,7 @@ export class Review {
 
   @Column({ type: 'bigint', name: 'review_movie_id' })
   review_movie_id: number;
+
+  @Column({ type: 'text', name: 'review_user_name' })
+  reviewUserName: string;
 }
