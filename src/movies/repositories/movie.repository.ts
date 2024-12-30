@@ -123,30 +123,6 @@ export class MovieRepository {
     await this.repository.clear();
   }
 
-  async findMovieWithRecentReviews(id: number): Promise<Movie | undefined> {
-    return this.repository.createQueryBuilder('movie')
-      .leftJoinAndSelect('movie.reviews', 'review')
-      .where('movie.id = :id', { id })
-      .orderBy('review.created_at', 'DESC')
-      .take(5)  // 최신 리뷰 5개만
-      .getOne();
-  }
-
-  async getReviewsCount(movieId: number): Promise<number> {
-    const result = await this.repository.createQueryBuilder('movie')
-      .leftJoin('movie.reviews', 'review')
-      .where('movie.id = :movieId', { movieId })
-      .select('COUNT(review.id)', 'count')
-      .getRawOne();
-
-    return Number(result.count);
-  }
-
-  async findReviewsByMovieId(movieId: number): Promise<ReviewRawData[]> {
-    const { reviews } = await this.findReviewsByMovieIdWithTotal(movieId);
-    return reviews;
-  }
-
   async findReviewsByMovieIdWithTotal(
     movieId: number,
     page: number = 1,
@@ -181,5 +157,11 @@ export class MovieRepository {
     ]);
 
     return { reviews, total };
+  }
+
+  async findOne(id: number): Promise<Movie | undefined> {
+    return this.repository.findOne({
+      where: { id }
+    });
   }
 }

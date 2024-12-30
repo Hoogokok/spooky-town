@@ -247,15 +247,15 @@ export class MoviesService {
   }
 
   async findMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
-    const movie = await this.movieRepository.findMovieWithRecentReviews(id);
+    const result = await this.movieRepository.findMovieWithProvidersAndReviews(id);
 
-    if (!movie) {
+    if (!result) {
       return failure(`영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-    const totalReviews = await this.movieRepository.getReviewsCount(id);
+    const { movie, reviewsRaw } = result;
 
-    const result: MovieDetailResponseDto = {
+    const response: MovieDetailResponseDto = {
       id: movie.id,
       title: movie.title,
       posterPath: movie.poster_path,
@@ -267,19 +267,11 @@ export class MoviesService {
         this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,
-      recentReviews: movie.reviews.map(review => ({
-        id: review.id,
-        content: review.reviewContent,
-        createdAt: review.created_at.toISOString(),
-        profile: {
-          id: review.reviewUserId,
-          name: review.reviewUserName
-        }
-      })),
-      totalReviews
+      recentReviews: reviewsRaw.reviews.map(this.mapReviewToDto),
+      totalReviews: reviewsRaw.total
     };
 
-    return success(result);
+    return success(response);
   }
 
   async getMovieReviews(
@@ -287,7 +279,7 @@ export class MoviesService {
     movieId: number,
     query: ReviewQueryDto
   ): Promise<Result<ReviewPageResponseDto, string>> {
-    const movie = await this.movieRepository.findMovieWithRecentReviews(movieId);
+    const movie = await this.movieRepository.findOne(movieId);
 
     if (!movie) {
       return failure(`영화 ID ${movieId}를 찾을 수 없습니다.`);
@@ -302,15 +294,7 @@ export class MoviesService {
     const totalPages = Math.ceil(total / query.limit);
 
     return success({
-      reviews: reviews.map(review => ({
-        id: review.id,
-        content: review.content,
-        createdAt: review.createdAt,
-        profile: {
-          id: review.profileId,
-          name: review.profileName
-        }
-      })),
+      reviews: reviews.map(this.mapReviewToDto),
       totalPages,
       currentPage: query.page,
       hasNext: query.page < totalPages
