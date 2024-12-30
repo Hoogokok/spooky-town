@@ -65,7 +65,10 @@ export class MovieRepository {
       .getMany();
   }
 
-  async findMovieWithProvidersAndReviews(id: number): Promise<{ movie: Movie; reviewsRaw: ReviewRawData[] } | undefined> {
+  async findMovieWithProvidersAndReviews(id: number): Promise<{
+    movie: Movie;
+    reviewsRaw: { reviews: ReviewRawData[]; total: number };
+  } | undefined> {
     const movie = await this.repository.findOne({
       where: { id },
       relations: ['movieProviders']
@@ -75,8 +78,8 @@ export class MovieRepository {
       return undefined;
     }
 
-    const reviewsRaw = await this.findReviewsByMovieId(movie.theMovieDbId);
-    return { movie, reviewsRaw };
+    const { reviews, total } = await this.findReviewsByMovieIdWithTotal(movie.theMovieDbId);
+    return { movie, reviewsRaw: { reviews, total } };
   }
 
   async findUpcomingMovies(today: string = new Date().toISOString()): Promise<Movie[]> {
@@ -99,7 +102,10 @@ export class MovieRepository {
       .getMany();
   }
 
-  async findTheatricalMovieById(id: number): Promise<{ movie: Movie; reviewsRaw: ReviewRawData[] } | undefined> {
+  async findTheatricalMovieById(id: number): Promise<{
+    movie: Movie;
+    reviewsRaw: { reviews: ReviewRawData[]; total: number };
+  } | undefined> {
     const movie = await this.repository.findOne({
       where: { id, isTheatricalRelease: true },
       relations: ['movieTheaters', 'movieTheaters.theater']
@@ -109,8 +115,8 @@ export class MovieRepository {
       return undefined;
     }
 
-    const reviewsRaw = await this.findReviewsByMovieId(movie.theMovieDbId);
-    return { movie, reviewsRaw };
+    const { reviews, total } = await this.findReviewsByMovieIdWithTotal(movie.theMovieDbId);
+    return { movie, reviewsRaw: { reviews, total } };
   }
 
   async clear() {

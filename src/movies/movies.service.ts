@@ -231,16 +231,16 @@ export class MoviesService {
       voteCount: movie.vote_count,
       providers: movie.movieTheaters.map(mt => mt.theater.name),
       theMovieDbId: movie.theMovieDbId,
-      recentReviews: movie.reviews.map(review => ({
+      recentReviews: reviewsRaw.reviews.map(review => ({
         id: review.id,
-        content: review.reviewContent,
-        createdAt: review.created_at.toISOString(),
+        content: review.content,
+        createdAt: review.createdAt,
         profile: {
-          id: review.reviewUserId,
-          name: review.reviewUserName
+          id: review.profileId,
+          name: review.profileName
         }
       })),
-      totalReviews: movie.reviews.length
+      totalReviews: reviewsRaw.total
     };
 
     return success(response);
