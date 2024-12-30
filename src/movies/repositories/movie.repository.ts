@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Movie } from '../entities/movie.entity';
-import { Review } from '../entities/review.entity';
-import { ReviewRawData } from '../types/review-raw-data.interface';
 import { MoreThan } from 'typeorm';
-import { REVIEW_ORDER, REVIEW_SELECT_FIELDS } from '../constants/review.constants';
+import { ReviewRawData } from '../types/review-raw-data.interface';
 
 @Injectable()
 export class MovieRepository {
@@ -67,7 +65,10 @@ export class MovieRepository {
       .getMany();
   }
 
-  async findMovieWithProvidersAndReviews(id: number): Promise<{ movie: Movie; reviewsRaw: ReviewRawData[] } | undefined> {
+  async findMovieWithProvidersAndReviews(id: number): Promise<{
+    movie: Movie;
+    reviewsRaw: { reviews: ReviewRawData[]; total: number };
+  } | undefined> {
     const movie = await this.repository.findOne({
       where: { id },
       relations: ['movieProviders']
@@ -77,8 +78,8 @@ export class MovieRepository {
       return undefined;
     }
 
-    const reviewsRaw = await this.findReviewsByMovieId(movie.theMovieDbId);
-    return { movie, reviewsRaw };
+    const { reviews, total } = await this.findReviewsByMovieIdWithTotal(movie.theMovieDbId);
+    return { movie, reviewsRaw: { reviews, total } };
   }
 
   async findUpcomingMovies(today: string = new Date().toISOString()): Promise<Movie[]> {
@@ -101,7 +102,10 @@ export class MovieRepository {
       .getMany();
   }
 
-  async findTheatricalMovieById(id: number): Promise<{ movie: Movie; reviewsRaw: ReviewRawData[] } | undefined> {
+  async findTheatricalMovieById(id: number): Promise<{
+    movie: Movie;
+    reviewsRaw: { reviews: ReviewRawData[]; total: number };
+  } | undefined> {
     const movie = await this.repository.findOne({
       where: { id, isTheatricalRelease: true },
       relations: ['movieTheaters', 'movieTheaters.theater']
@@ -111,28 +115,53 @@ export class MovieRepository {
       return undefined;
     }
 
-    const reviewsRaw = await this.findReviewsByMovieId(movie.theMovieDbId);
-    return { movie, reviewsRaw };
+    const { reviews, total } = await this.findReviewsByMovieIdWithTotal(movie.theMovieDbId);
+    return { movie, reviewsRaw: { reviews, total } };
   }
 
   async clear() {
     await this.repository.clear();
   }
 
-  async findReviewsByMovieId(movieId: number): Promise<ReviewRawData[]> {
-    return this.repository.manager
-      .createQueryBuilder()
-      .select([
-        REVIEW_SELECT_FIELDS.ID,
-        REVIEW_SELECT_FIELDS.CONTENT,
-        REVIEW_SELECT_FIELDS.CREATED_AT,
-        REVIEW_SELECT_FIELDS.PROFILE_ID,
-        REVIEW_SELECT_FIELDS.PROFILE_NAME
-      ])
-      .from('reviews', 'reviews')
-      .leftJoin('profiles', 'profiles', 'reviews.review_user_id = profiles.id')
-      .where('reviews.review_movie_id = :movieId', { movieId })
-      .orderBy(REVIEW_ORDER.CREATED_AT, REVIEW_ORDER.DESC)
-      .getRawMany();
+  async findReviewsByMovieIdWithTotal(
+    movieId: number,
+    page: number = 1,
+    limit: number = 5
+  ): Promise<{ reviews: ReviewRawData[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [reviews, total] = await Promise.all([
+      this.repository.manager
+        .createQueryBuilder()
+        .select([
+          'reviews.id as id',
+          'reviews.review_content as content',
+          'reviews.created_at as "createdAt"',
+          'reviews.review_user_id as "profileId"',
+          'reviews.review_user_name as "profileName"'
+        ])
+        .from('reviews', 'reviews')
+        .where('reviews.review_movie_id = :movieId', { movieId })
+        .orderBy('reviews.created_at', 'DESC')
+        .limit(limit)
+        .offset(skip)
+        .getRawMany(),
+
+      this.repository.manager
+        .createQueryBuilder()
+        .select('COUNT(*)', 'count')
+        .from('reviews', 'reviews')
+        .where('reviews.review_movie_id = :movieId', { movieId })
+        .getRawOne()
+        .then(result => Number(result.count))
+    ]);
+
+    return { reviews, total };
+  }
+
+  async findOne(id: number): Promise<Movie | undefined> {
+    return this.repository.findOne({
+      where: { id }
+    });
   }
 }

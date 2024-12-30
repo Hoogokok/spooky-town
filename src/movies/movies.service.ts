@@ -10,6 +10,8 @@ import { MovieProvider } from './entities/movie-provider.entity';
 import { Result, success, failure } from '../common/result';
 import { MovieRepository } from './repositories/movie.repository';
 import { NetflixHorrorExpiringRepository } from './repositories/netflix-horror-expiring.repository';
+import { ReviewQueryDto } from './dto/review-query.dto';
+import { ReviewPageResponseDto } from './dto/review-page-response.dto';
 import { ReviewRawData } from './types/review-raw-data.interface';
 import { ReviewDto } from './dto/review.dto';
 
@@ -84,7 +86,16 @@ export class MoviesService {
         this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,
-      reviews: reviewsRaw.map(this.mapReviewToDto)
+      recentReviews: reviewsRaw.reviews.map(review => ({
+        id: review.id,
+        content: review.content,
+        createdAt: review.createdAt,
+        profile: {
+          id: review.profileId,
+          name: review.profileName
+        }
+      })),
+      totalReviews: reviewsRaw.total
     };
 
     return success(response);
@@ -165,7 +176,16 @@ export class MoviesService {
         mp.theProviderId.toString() === "1" ? "넷플릭스" : "디즈니플러스"
       ),
       theMovieDbId: movie.theMovieDbId,
-      reviews: reviewsRaw.map(this.mapReviewToDto)
+      recentReviews: reviewsRaw.reviews.map(review => ({
+        id: review.id,
+        content: review.content,
+        createdAt: review.createdAt,
+        profile: {
+          id: review.profileId,
+          name: review.profileName
+        }
+      })),
+      totalReviews: reviewsRaw.total
     };
 
     return success(response);
@@ -211,9 +231,73 @@ export class MoviesService {
       voteCount: movie.vote_count,
       providers: movie.movieTheaters.map(mt => mt.theater.name),
       theMovieDbId: movie.theMovieDbId,
-      reviews: reviewsRaw.map(this.mapReviewToDto)
+      recentReviews: reviewsRaw.reviews.map(review => ({
+        id: review.id,
+        content: review.content,
+        createdAt: review.createdAt,
+        profile: {
+          id: review.profileId,
+          name: review.profileName
+        }
+      })),
+      totalReviews: reviewsRaw.total
     };
 
     return success(response);
+  }
+
+  async findMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {
+    const result = await this.movieRepository.findMovieWithProvidersAndReviews(id);
+
+    if (!result) {
+      return failure(`영화 ID ${id}를 찾을 수 없습니다.`);
+    }
+
+    const { movie, reviewsRaw } = result;
+
+    const response: MovieDetailResponseDto = {
+      id: movie.id,
+      title: movie.title,
+      posterPath: movie.poster_path,
+      releaseDate: movie.release_date,
+      overview: movie.overview,
+      voteAverage: movie.vote_average,
+      voteCount: movie.vote_count,
+      providers: movie.movieProviders.map(mp =>
+        this.getProviderName(mp.theProviderId)
+      ),
+      theMovieDbId: movie.theMovieDbId,
+      recentReviews: reviewsRaw.reviews.map(this.mapReviewToDto),
+      totalReviews: reviewsRaw.total
+    };
+
+    return success(response);
+  }
+
+  async getMovieReviews(
+    movieType: string,
+    movieId: number,
+    query: ReviewQueryDto
+  ): Promise<Result<ReviewPageResponseDto, string>> {
+    const movie = await this.movieRepository.findOne(movieId);
+
+    if (!movie) {
+      return failure(`영화 ID ${movieId}를 찾을 수 없습니다.`);
+    }
+
+    const { reviews, total } = await this.movieRepository.findReviewsByMovieIdWithTotal(
+      movie.theMovieDbId,
+      query.page,
+      query.limit
+    );
+
+    const totalPages = Math.ceil(total / query.limit);
+
+    return success({
+      reviews: reviews.map(this.mapReviewToDto),
+      totalPages,
+      currentPage: query.page,
+      hasNext: query.page < totalPages
+    });
   }
 }

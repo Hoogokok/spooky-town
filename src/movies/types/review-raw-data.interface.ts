@@ -4,4 +4,4 @@ export interface ReviewRawData {
     createdAt: string;
     profileId: string;
     profileName: string;
-} 
+  }
