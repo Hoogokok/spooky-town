@@ -9,6 +9,6 @@ export class BaseMovieDetailResponseDto {
   voteCount: number;
   providers: string[];
   theMovieDbId: number;
-  recentReviews: ReviewDto[];
+  reviews: ReviewDto[];
   totalReviews: number;
 }

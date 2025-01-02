@@ -81,7 +81,7 @@ export class MoviesController {
     @Param('id', ParseIntPipe) id: number,
     @Query() query: ReviewQueryDto
   ): Promise<ReviewPageResponseDto> {
-    const result = await this.moviesService.getMovieReviews(movieType, id, query);
+    const result = await this.moviesService.getMovieReviews(movieType, id, { page: query.page });
     if (result.success) {
       return result.data;
     }

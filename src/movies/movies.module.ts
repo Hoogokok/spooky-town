@@ -10,10 +10,11 @@ import { MoviesService } from './movies.service';
 import { MoviesController } from './movies.controller';
 import { MovieRepository } from './repositories/movie.repository';
 import { NetflixHorrorExpiringRepository } from './repositories/netflix-horror-expiring.repository';
+import { ReviewsController } from './controllers/reviews.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Movie, MovieProvider, MovieTheater, Theater, NetflixHorrorExpiring, Review])],
-  controllers: [MoviesController],
+  controllers: [MoviesController, ReviewsController],
   providers: [MoviesService, MovieRepository, NetflixHorrorExpiringRepository],
   exports: [MoviesService]
 })
