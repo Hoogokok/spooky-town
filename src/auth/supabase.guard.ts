@@ -27,8 +27,21 @@ export class SupabaseGuard implements CanActivate {
                 throw new UnauthorizedException(error.message);
             }
 
-            // 유효한 토큰이면 request에 user 정보를 붙여서 컨트롤러에서 사용할 수 있게 함
-            request.user = user;
+            // 프로필 이미지 URL 생성
+            const fileName = `user-${user.id}.jpeg`;
+            const filePath = `${user.id}/${fileName}`;
+            const { data: { publicUrl } } = this.supabase.storage
+                .from('profile-image')
+                .getPublicUrl(filePath);
+
+            // user 객체에 이미지 URL 추가
+            request.user = {
+                id: user.id,
+                email: user.email,
+                name: user.user_metadata.name,
+                imageUrl: publicUrl
+            };
+
             return true;
         } catch (error) {
             throw new UnauthorizedException('Invalid token');
