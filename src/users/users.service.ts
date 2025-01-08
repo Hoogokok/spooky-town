@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
+import { MulterFile } from './interfaces/multer.interface';
 
 @Injectable()
 export class UsersService {
@@ -38,7 +39,7 @@ export class UsersService {
         return { name };
     }
 
-    async updateProfileImage(userId: string, file: any) {
+    async updateProfileImage(userId: string, file: MulterFile) {
         const fileName = `user-${userId}.jpeg`;
         const filePath = `${userId}/${fileName}`;
 

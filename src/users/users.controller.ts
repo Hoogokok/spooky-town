@@ -4,6 +4,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MaxFileSizeInterceptor } from '../common/interceptors/max-file-size.interceptor';
+import { MulterFile } from './interfaces/multer.interface';
 
 @Controller('users')
 export class UsersController {
@@ -44,7 +45,7 @@ export class UsersController {
     )
     async uploadProfileImage(
         @Req() req,
-        @UploadedFile() file: any
+        @UploadedFile() file: MulterFile
     ) {
         if (!file) {
             throw new BadRequestException('이미지 파일이 필요합니다.');
