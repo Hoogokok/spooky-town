@@ -14,9 +14,12 @@ import { ReviewQueryDto } from './dto/review-query.dto';
 import { ReviewRawData } from './types/review-raw-data.interface';
 import { ReviewDto } from './dto/review.dto';
 import { ReviewPageResponseDto } from './dto/review-page-response.dto';
+import { StreamingPageResponseDto } from './dto/streaming-page-response.dto';
 
 @Injectable()
 export class MoviesService {
+  private readonly ITEMS_PER_PAGE = 18;
+
   constructor(
     private movieRepository: MovieRepository,
     @InjectRepository(MovieProvider)
@@ -24,20 +27,26 @@ export class MoviesService {
     private netflixHorrorExpiringRepository: NetflixHorrorExpiringRepository
   ) { }
 
-  async getStreamingMovies(query: MovieQueryDto): Promise<MovieResponseDto[]> {
+  async getStreamingMovies(query: MovieQueryDto): Promise<StreamingPageResponseDto> {
     const { provider, page = 1 } = query;
-    const itemsPerPage = 6;
-    const skip = (page - 1) * itemsPerPage;
+    const skip = (page - 1) * this.ITEMS_PER_PAGE;
 
-    const movies = await this.movieRepository.getStreamingMovies(provider, itemsPerPage, skip);
+    const [movies, totalCount] = await Promise.all([
+      this.movieRepository.getStreamingMovies(provider, this.ITEMS_PER_PAGE, skip),
+      this.movieRepository.getTotalStreamingMoviesCount(provider)
+    ]);
 
-    return movies.map(movie => ({
-      id: movie.id,
-      title: movie.title,
-      posterPath: movie.poster_path,
-      releaseDate: movie.release_date,
-      providers: this.getProviderName(movie.movieProviders[0].theProviderId)
-    }));
+    return {
+      movies: movies.map(movie => ({
+        id: movie.id,
+        title: movie.title,
+        posterPath: movie.poster_path,
+        releaseDate: movie.release_date,
+        providers: this.getProviderName(movie.movieProviders[0].theProviderId)
+      })),
+      totalPages: Math.ceil(totalCount / this.ITEMS_PER_PAGE),
+      currentPage: page
+    };
   }
 
   private getProviderName(providerId: number): string {
@@ -55,14 +64,6 @@ export class MoviesService {
       default:
         return "알 수 없음";
     }
-  }
-
-  async getTotalStreamingPages(query: MovieQueryDto): Promise<number> {
-    const { provider } = query;
-    const itemsPerPage = 6;
-
-    const totalCount = await this.movieRepository.getTotalStreamingMoviesCount(provider);
-    return Math.max(1, Math.ceil(totalCount / itemsPerPage));
   }
 
   async getStreamingMovieDetail(id: number): Promise<Result<MovieDetailResponseDto, string>> {

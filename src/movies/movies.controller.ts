@@ -8,19 +8,14 @@ import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-resp
 import { Failure } from 'src/common/result';
 import { ReviewQueryDto } from './dto/review-query.dto';
 import { ReviewPageResponseDto } from './dto/review-page-response.dto';
+import { StreamingPageResponseDto } from './dto/streaming-page-response.dto';
 @Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
   @Get('streaming')
-  async getStreamingMovies(@Query() query: MovieQueryDto): Promise<MovieResponseDto[]> {
+  async getStreamingMovies(@Query() query: MovieQueryDto): Promise<StreamingPageResponseDto> {
     return this.moviesService.getStreamingMovies(query);
-  }
-
-  @Get('streaming/pages')
-  async getTotalStreamingPages(@Query() query: MovieQueryDto): Promise<{ totalPages: number }> {
-    const totalPages = await this.moviesService.getTotalStreamingPages(query);
-    return { totalPages };
   }
 
   @Get('streaming/:id')
