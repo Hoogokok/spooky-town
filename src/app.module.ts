@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
 import { MoviesModule } from './movies/movies.module';
+import { UsersController } from './users/users.controller';
   
 @Module({
   imports: [
@@ -18,7 +19,10 @@ import { MoviesModule } from './movies/movies.module';
     }),
     MoviesModule,
   ],
-  controllers: [AppController],
+  controllers: [
+    UsersController,
+    AppController,
+  ],
   providers: [AppService],
 })
 export class AppModule {}
