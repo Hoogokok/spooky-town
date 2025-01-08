@@ -28,12 +28,12 @@ export class MoviesService {
   ) { }
 
   async getStreamingMovies(query: MovieQueryDto): Promise<StreamingPageResponseDto> {
-    const { provider, page = 1 } = query;
+    const { provider, page = 1, search } = query;
     const skip = (page - 1) * this.ITEMS_PER_PAGE;
 
     const [movies, totalCount] = await Promise.all([
-      this.movieRepository.getStreamingMovies(provider, this.ITEMS_PER_PAGE, skip),
-      this.movieRepository.getTotalStreamingMoviesCount(provider)
+      this.movieRepository.getStreamingMovies(provider, this.ITEMS_PER_PAGE, skip, search),
+      this.movieRepository.getTotalStreamingMoviesCount(provider, search)
     ]);
 
     return {
