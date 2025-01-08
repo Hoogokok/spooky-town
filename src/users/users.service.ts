@@ -12,6 +12,19 @@ export class UsersService {
         );
     }
 
+    async getUserProfile(userId: string) {
+        // 프로필 이미지 URL 생성
+        const fileName = `user-${userId}.jpeg`;
+        const filePath = `${userId}/${fileName}`;
+        const { data: { publicUrl } } = this.supabase.storage
+            .from('profile-image')
+            .getPublicUrl(filePath);
+
+        return {
+            imageUrl: publicUrl
+        };
+    }
+
     async updateUserProfile(userId: string, name: string) {
         const { error } = await this.supabase.auth.admin.updateUserById(
             userId,

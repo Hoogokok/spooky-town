@@ -27,19 +27,11 @@ export class SupabaseGuard implements CanActivate {
                 throw new UnauthorizedException(error.message);
             }
 
-            // 프로필 이미지 URL 생성
-            const fileName = `user-${user.id}.jpeg`;
-            const filePath = `${user.id}/${fileName}`;
-            const { data: { publicUrl } } = this.supabase.storage
-                .from('profile-image')
-                .getPublicUrl(filePath);
-
-            // user 객체에 이미지 URL 추가
+            // 토큰 검증 후 기본 user 정보만 저장
             request.user = {
                 id: user.id,
                 email: user.email,
-                name: user.user_metadata.name,
-                imageUrl: publicUrl
+                metadata: user.user_metadata
             };
 
             return true;

@@ -1,8 +1,6 @@
 import { Controller, Get, Patch, UseGuards, Req, Body } from '@nestjs/common';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { UsersService } from './users.service';
-
-// DTO를 별도 파일로 분리
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
@@ -12,7 +10,14 @@ export class UsersController {
     @Get('profile')
     @UseGuards(SupabaseGuard)
     async getProfile(@Req() req) {
-        return req.user;
+        const profileData = await this.usersService.getUserProfile(req.user.id);
+
+        return {
+            id: req.user.id,
+            email: req.user.email,
+            name: req.user.metadata.name,
+            ...profileData
+        };
     }
 
     @Patch('profile')
