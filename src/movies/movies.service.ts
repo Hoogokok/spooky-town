@@ -18,7 +18,7 @@ import { StreamingPageResponseDto } from './dto/streaming-page-response.dto';
 
 @Injectable()
 export class MoviesService {
-  private readonly ITEMS_PER_PAGE = 18;
+  private readonly ITEMS_PER_PAGE = 24;
 
   constructor(
     private movieRepository: MovieRepository,
