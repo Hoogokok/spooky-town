@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
 
 @Injectable()
@@ -36,5 +36,32 @@ export class UsersService {
         }
 
         return { name };
+    }
+
+    async updateProfileImage(userId: string, file: any) {
+        const fileName = `user-${userId}.jpeg`;
+        const filePath = `${userId}/${fileName}`;
+
+        try {
+            const { error } = await this.supabase.storage
+                .from('profile-image')
+                .upload(filePath, file.buffer, {
+                    contentType: file.mimetype,
+                    upsert: true // 기존 파일이 있으면 덮어쓰기
+                });
+
+            if (error) {
+                throw new BadRequestException(error.message);
+            }
+
+            // 업로드된 이미지의 public URL 반환
+            const { data: { publicUrl } } = this.supabase.storage
+                .from('profile-image')
+                .getPublicUrl(filePath);
+
+            return { imageUrl: publicUrl };
+        } catch (error) {
+            throw new BadRequestException('이미지 업로드에 실패했습니다.');
+        }
     }
 } 
