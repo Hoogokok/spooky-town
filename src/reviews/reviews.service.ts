@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Review } from './entities/review.entity';
+import { ReviewResponseDto } from './dto/review-response.dto';
 
 @Injectable()
 export class ReviewsService {
@@ -32,5 +33,31 @@ export class ReviewsService {
             }
             throw new BadRequestException('리뷰 작성에 실패했습니다.');
         }
+    }
+
+    async getMovieReviews(movieId: number, options: { page: number; limit: number }) {
+        const [reviews, total] = await this.reviewsRepository.findAndCount({
+            where: { movieId },
+            order: { createdAt: 'DESC' },
+            skip: (options.page - 1) * options.limit,
+            take: options.limit
+        });
+
+        const reviewResponses = reviews.map(review => new ReviewResponseDto({
+            id: review.id,
+            movieId: review.movieId,
+            userId: review.userId,
+            userName: review.userName,
+            rating: review.rating,
+            content: review.content,
+            createdAt: review.createdAt
+        }));
+
+        return {
+            reviews: reviewResponses,
+            totalCount: total,
+            currentPage: options.page,
+            totalPages: Math.ceil(total / options.limit)
+        };
     }
 } 
