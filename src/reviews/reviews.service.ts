@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { Review } from './entities/review.entity';
 import { ReviewResponseDto } from './dto/review-response.dto';
+import { UpdateReviewDto } from './dto/update-review.dto';
 
 @Injectable()
 export class ReviewsService {
@@ -59,5 +60,29 @@ export class ReviewsService {
             currentPage: options.page,
             totalPages: Math.ceil(total / options.limit)
         };
+    }
+
+    async updateReview(reviewId: number, userId: string, updateReviewDto: UpdateReviewDto) {
+        const review = await this.reviewsRepository.findOne({
+            where: { id: reviewId }
+        });
+
+        if (!review) {
+            throw new BadRequestException('리뷰를 찾을 수 없습니다.');
+        }
+
+        if (review.userId !== userId) {
+            throw new BadRequestException('리뷰를 수정할 권한이 없습니다.');
+        }
+
+        try {
+            await this.reviewsRepository.update(reviewId, updateReviewDto);
+
+            return {
+                message: '리뷰가 성공적으로 수정되었습니다.'
+            };
+        } catch (error) {
+            throw new BadRequestException('리뷰 수정에 실패했습니다.');
+        }
     }
 } 

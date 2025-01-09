@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Body, Query, UseGuards, Req, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, UseGuards, Req, Param, Patch, Put } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { ReviewsService } from './reviews.service';
+import { UpdateReviewDto } from './dto/update-review.dto';
 
 @Controller('reviews')
 export class ReviewsController {
@@ -32,5 +33,19 @@ export class ReviewsController {
             page,
             limit
         });
+    }
+
+    @Put('movie/:reviewId')
+    @UseGuards(SupabaseGuard)
+    async updateReview(
+        @Param('reviewId') reviewId: number,
+        @Req() req,
+        @Body() updateReviewDto: UpdateReviewDto
+    ) {
+        return this.reviewsService.updateReview(
+            reviewId,
+            req.user.id,
+            updateReviewDto
+        );
     }
 } 
