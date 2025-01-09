@@ -85,4 +85,28 @@ export class ReviewsService {
             throw new BadRequestException('리뷰 수정에 실패했습니다.');
         }
     }
+
+    async deleteReview(reviewId: number, userId: string) {
+        const review = await this.reviewsRepository.findOne({
+            where: { id: reviewId }
+        });
+
+        if (!review) {
+            throw new BadRequestException('리뷰를 찾을 수 없습니다.');
+        }
+
+        if (review.userId !== userId) {
+            throw new BadRequestException('리뷰를 삭제할 권한이 없습니다.');
+        }
+
+        try {
+            await this.reviewsRepository.delete(reviewId);
+
+            return {
+                message: '리뷰가 성공적으로 삭제되었습니다.'
+            };
+        } catch (error) {
+            throw new BadRequestException('리뷰 삭제에 실패했습니다.');
+        }
+    }
 } 

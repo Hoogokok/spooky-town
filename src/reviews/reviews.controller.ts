@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Query, UseGuards, Req, Param, Patch, Put } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, UseGuards, Req, Param, Patch, Put, Delete } from '@nestjs/common';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { SupabaseGuard } from '../auth/supabase.guard';
 import { ReviewsService } from './reviews.service';
@@ -47,5 +47,14 @@ export class ReviewsController {
             req.user.id,
             updateReviewDto
         );
+    }
+
+    @Delete('movie/:reviewId')
+    @UseGuards(SupabaseGuard)
+    async deleteReview(
+        @Param('reviewId') reviewId: number,
+        @Req() req
+    ) {
+        return this.reviewsService.deleteReview(reviewId, req.user.id);
     }
 } 
