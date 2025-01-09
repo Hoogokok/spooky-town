@@ -13,7 +13,12 @@ export class MovieRepository {
     private readonly repository: Repository<Movie>,
   ) { }
 
-  async getStreamingMovies(provider: string | undefined, take: number, skip: number): Promise<Movie[]> {
+  async getStreamingMovies(
+    provider: string | undefined,
+    take: number,
+    skip: number,
+    search?: string
+  ): Promise<Movie[]> {
     const queryBuilder = this.repository.createQueryBuilder('movie')
       .innerJoinAndSelect('movie.movieProviders', 'movieProvider')
       .where('movie.isTheatricalRelease = :isTheatrical', { isTheatrical: false })
@@ -28,6 +33,12 @@ export class MovieRepository {
       }
     }
 
+    if (search) {
+      queryBuilder.andWhere('LOWER(movie.title) LIKE LOWER(:search)', {
+        search: `%${search}%`
+      });
+    }
+
     return queryBuilder.getMany();
   }
 
@@ -35,7 +46,7 @@ export class MovieRepository {
     return this.repository.save(movie);
   }
 
-  async getTotalStreamingMoviesCount(provider?: string): Promise<number> {
+  async getTotalStreamingMoviesCount(provider?: string, search?: string): Promise<number> {
     const queryBuilder = this.repository.createQueryBuilder('movie')
       .innerJoin('movie.movieProviders', 'movieProvider')
       .where('movie.isTheatricalRelease = :isTheatrical', { isTheatrical: false });
@@ -45,6 +56,12 @@ export class MovieRepository {
       if (providerId !== 0) {
         queryBuilder.andWhere('movieProvider.theProviderId = :providerId', { providerId });
       }
+    }
+
+    if (search) {
+      queryBuilder.andWhere('LOWER(movie.title) LIKE LOWER(:search)', {
+        search: `%${search}%`
+      });
     }
 
     return queryBuilder.getCount();

@@ -6,21 +6,14 @@ import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
 import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
 import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
 import { Failure } from 'src/common/result';
-import { ReviewQueryDto } from './dto/review-query.dto';
-import { ReviewPageResponseDto } from './dto/review-page-response.dto';
+import { StreamingPageResponseDto } from './dto/streaming-page-response.dto';
 @Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
   @Get('streaming')
-  async getStreamingMovies(@Query() query: MovieQueryDto): Promise<MovieResponseDto[]> {
+  async getStreamingMovies(@Query() query: MovieQueryDto): Promise<StreamingPageResponseDto> {
     return this.moviesService.getStreamingMovies(query);
-  }
-
-  @Get('streaming/pages')
-  async getTotalStreamingPages(@Query() query: MovieQueryDto): Promise<{ totalPages: number }> {
-    const totalPages = await this.moviesService.getTotalStreamingPages(query);
-    return { totalPages };
   }
 
   @Get('streaming/:id')
@@ -75,16 +68,4 @@ export class MoviesController {
     }
   }
 
-  @Get(':movieType/:id/reviews')
-  async getMovieReviews(
-    @Param('movieType') movieType: string,
-    @Param('id', ParseIntPipe) id: number,
-    @Query() query: ReviewQueryDto
-  ): Promise<ReviewPageResponseDto> {
-    const result = await this.moviesService.getMovieReviews(movieType, id, { page: query.page });
-    if (result.success) {
-      return result.data;
-    }
-    throw new NotFoundException((result as Failure<string>).error);
-  }
 }

@@ -5,6 +5,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
 import { MoviesModule } from './movies/movies.module';
+import { UsersModule } from './users/users.module';
+import { ReviewsModule } from './reviews/reviews.module';
   
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { MoviesModule } from './movies/movies.module';
       useFactory: (configService: ConfigService) => configService.get('database'),
     }),
     MoviesModule,
+    UsersModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

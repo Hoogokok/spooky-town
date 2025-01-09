@@ -1,6 +1,5 @@
 import { Movie } from '../../entities/movie.entity';
 import { MovieProvider } from '../../entities/movie-provider.entity';
-import { Review } from '../../entities/review.entity';
 
 export function createTestMovie(overrides: Partial<Movie> = {}): Movie {
   return {
@@ -25,15 +24,4 @@ export function createTestMovieProvider(overrides: Partial<MovieProvider> = {}):
     movie: movie,
     ...overrides
   } as MovieProvider;
-}
-
-export function createTestReview(overrides: Partial<Review> = {}): Review {
-  const movie = overrides.movie || createTestMovie();
-  return {
-    reviewContent: '좋은 영화예요',
-    reviewUserId: 'user1',
-    created_at: new Date('2023-01-01'),
-    movie: movie,
-    ...overrides
-  } as Review;
 }

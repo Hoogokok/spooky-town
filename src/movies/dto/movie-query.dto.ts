@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsInt, Min } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, MinLength } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class MovieQueryDto {
@@ -11,4 +11,9 @@ export class MovieQueryDto {
   @IsInt()
   @Min(1)
   page?: number;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  search?: string;
 }

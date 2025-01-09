@@ -1,7 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { MovieProvider } from './movie-provider.entity';
 import { MovieTheater } from './movie-theater.entity';
-import { Review } from './review.entity'; 
 
 @Entity('movie')
 export class Movie {
@@ -37,7 +36,4 @@ export class Movie {
 
   @OneToMany(() => MovieTheater, movieTheater => movieTheater.movie)
   movieTheaters: MovieTheater[];
-
-  @OneToMany(() => Review, review => review.movie)
-  reviews: Review[];
 }

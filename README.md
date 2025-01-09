@@ -64,11 +64,39 @@
    - 응답: { totalPages: number } 형식
 
 6. GET("/movies/streaming")
-   - 설명: 스트리밍 서비스의 영화 정보를 반환합니다.
+   - 설명: 스트리밍 서비스의 영화 정보를 페이지네이션하여 반환합니다.
    - 필요한 매개변수:
-     - provider: 스트리밍 서비스 이름 (쿼리 매개변수)
-     - page: 페이지 번호 (쿼리 매개변수, 선택적)
-   - 응답: MovieResponseDto[] 형식
+     - provider: 스트리밍 서비스 이름 (쿼리 매개변수, 선택적)
+       - netflix: 넷플릭스
+       - disney: 디즈니플러스
+       - wavve: 웨이브
+       - naver: 네이버
+       - googleplay: 구글 플레이
+     - page: 페이지 번호 (쿼리 매개변수, 선택적, 기본값: 1)
+     - search: 검색어 (쿼리 매개변수, 선택적)
+       - 영화 제목 검색
+       - 최소 1자 이상
+       - 대소문자 구분 없음
+       - 부분 일치 검색 지원
+   - 응답: StreamingPageResponseDto 형식
+     ```typescript
+     {
+       movies: {
+         id: number;
+         title: string;
+         posterPath: string;
+         releaseDate: string;
+         providers: string;
+       }[];
+       totalPages: number;
+       currentPage: number;
+     }
+     ```
+   - 페이지네이션:
+     - 페이지당 영화 수: 24개
+     - 정렬 기준: 개봉일 (release_date) 기준 내림차순
+     - 예시:
+       - /movies/streaming?search=스파이��맨
 
 7. GET("/movies/streaming/{id}")
    - 설명: 스트리밍 영화의 상세 정보를 반환합니다.

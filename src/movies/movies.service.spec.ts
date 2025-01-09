@@ -6,13 +6,12 @@ import { NetflixHorrorExpiringRepository } from './repositories/netflix-horror-e
 import { MovieProvider } from './entities/movie-provider.entity';
 import { Movie } from './entities/movie.entity';
 import { NetflixHorrorExpiring } from './entities/netflix-horror-expiring.entity';
-import { Review } from './entities/review.entity';
 import { MovieTheater } from './entities/movie-theater.entity';
 import { Theater } from './entities/theater.entity';
 import { testDbConfig } from '../../test/test-db.config';
 import { DataSource } from 'typeorm';
 import { success, failure } from '../common/result';
-import { createTestMovie, createTestMovieProvider, createTestReview } from './test/factories/movie.factory';
+import { createTestMovie, createTestMovieProvider } from './test/factories/movie.factory';
 import { createTestNetflixHorrorExpiring } from './test/factories/netflix-horror-expiring.factory';
 
 describe('MoviesService', () => {
@@ -30,7 +29,7 @@ describe('MoviesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         TypeOrmModule.forRoot(testDbConfig),
-        TypeOrmModule.forFeature([Movie, MovieProvider, NetflixHorrorExpiring, Review, MovieTheater, Theater]),
+        TypeOrmModule.forFeature([Movie, MovieProvider, NetflixHorrorExpiring, MovieTheater, Theater]),
       ],
       providers: [MoviesService, MovieRepository, NetflixHorrorExpiringRepository],
     }).compile();
@@ -90,32 +89,9 @@ describe('MoviesService', () => {
         }
 
         const result = await service.getStreamingMovies({ provider: 'netflix', page: 0 });
-        expect(result.length).toBe(6);
-        expect(result[0].title).toBe('영화 1');
+        expect(result.movies.length).toBe(6);
+        expect(result.movies[0].title).toBe('영화 1');
       });
-    });
-  });
-
-  describe('getTotalStreamingPages', () => {
-    it('총 페이지 수를 올바르게 계산해야 합니다', async () => {
-      await dataSource.transaction(async (transactionalEntityManager) => {
-        for (let i = 0; i < 7; i++) {
-          const movie = await transactionalEntityManager.save(Movie, createTestMovie({ theMovieDbId: 12345 + i }));
-          await transactionalEntityManager.save(MovieProvider, createTestMovieProvider({ 
-            movie: movie, 
-            theProviderId: 1 
-          }));
-        }
-
-        const result = await service.getTotalStreamingPages({ provider: 'netflix' });
-        expect(result).toBe(2);
-      });
-    });
-
-    it('결과가 0일 때 1 페이지를 반환해야 합니다', async () => {
-      const result = await service.getTotalStreamingPages({ provider: 'netflix' });
-
-      expect(result).toBe(1);
     });
   });
 
@@ -124,8 +100,6 @@ describe('MoviesService', () => {
       await dataSource.transaction(async (transactionalEntityManager) => {
         const movie = await transactionalEntityManager.save(Movie, createTestMovie());
         await transactionalEntityManager.save(MovieProvider, createTestMovieProvider({ movie, theProviderId: 1 }));
-        await transactionalEntityManager.save(Review, createTestReview({ movie }));
-
         const result = await service.getStreamingMovieDetail(movie.id);
 
         expect(result.success).toBe(true);
@@ -217,13 +191,6 @@ describe('MoviesService', () => {
         movieProvider.theProviderId = 1; 
         await transactionalEntityManager.save(MovieProvider, movieProvider);
 
-        const review = new Review();
-        review.reviewContent = '무서워요';
-        review.reviewUserId = 'user1';
-        review.movie = movie;
-        review.created_at = new Date();
-        await transactionalEntityManager.save(Review, review);
-
         const result = await service.getExpiringHorrorMovieDetail(movie.id);
 
         expect(result.success).toBe(true);
@@ -236,9 +203,8 @@ describe('MoviesService', () => {
             overview: '무서운 영화니다',
             voteAverage: 8,
             voteCount: 2000,
-            providers: ['넷플릭스'],
+            watchProviders: ['넷플릭스'],
             theMovieDbId: 12345,
-            reviews: [{ id: expect.any(Number), content: '무서워요', createdAt: expect.any(String) }],
           });
         }
       });
@@ -331,12 +297,7 @@ describe('MoviesService', () => {
         movieTheater.theater = theater;
         await transactionalEntityManager.save(MovieTheater, movieTheater);
 
-        const review = new Review();
-        review.reviewContent = '재미있어요';
-        review.reviewUserId = 'user1';
-        review.review_movie_id = movie.theMovieDbId;
-        review.created_at = new Date();
-        await transactionalEntityManager.save(Review, review);
+
 
         const result = await service.findTheatricalMovieDetail(movie.id);
 
@@ -350,9 +311,8 @@ describe('MoviesService', () => {
             overview: '테스트 개요',
             voteAverage: 8.5,
             voteCount: 1000,
-            providers: ['CGV'],
+            watchProviders: ['CGV'],
             theMovieDbId: 12345,
-            reviews: [{ id: expect.any(Number), content: '재미있어요', createdAt: expect.any(String) }],
           });
         }
       });

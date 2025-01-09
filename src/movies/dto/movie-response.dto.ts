@@ -3,5 +3,5 @@ export class MovieResponseDto {
     title: string;
     releaseDate: string;
     posterPath: string;
-    providers?: string;
+    watchProviders?: string;
   }
