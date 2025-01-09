@@ -1,5 +1,3 @@
-import { ReviewDto } from "./review.dto";
-
 export class BaseMovieDetailResponseDto {
   id: number;
   title: string;
@@ -9,6 +7,4 @@ export class BaseMovieDetailResponseDto {
   voteCount: number;
   watchProviders: string[];
   theMovieDbId: number;
-  reviews: ReviewDto[];
-  totalReviews: number;
 }
