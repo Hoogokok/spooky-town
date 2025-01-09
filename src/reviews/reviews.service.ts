@@ -12,12 +12,12 @@ export class ReviewsService {
         private reviewsRepository: Repository<Review>
     ) { }
 
-    async createReview(userId: string, userName: string, createReviewDto: CreateReviewDto) {
+    async createReview(userId: string, userName: string, movieId: number, createReviewDto: CreateReviewDto) {
         try {
             const review = this.reviewsRepository.create({
                 userId,
                 userName,
-                movieId: createReviewDto.movieId,
+                movieId,
                 content: createReviewDto.content,
                 rating: createReviewDto.rating
             });

@@ -7,15 +7,17 @@ import { ReviewsService } from './reviews.service';
 export class ReviewsController {
     constructor(private readonly reviewsService: ReviewsService) { }
 
-    @Post()
+    @Post('movie/:movieId')
     @UseGuards(SupabaseGuard)
     async createReview(
+        @Param('movieId') movieId: number,
         @Req() req,
         @Body() createReviewDto: CreateReviewDto
     ) {
         return this.reviewsService.createReview(
             req.user.id,
             req.user.metadata.name,
+            movieId,
             createReviewDto
         );
     }
