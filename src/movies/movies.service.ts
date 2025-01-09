@@ -11,8 +11,6 @@ import { Result, success, failure } from '../common/result';
 import { MovieRepository } from './repositories/movie.repository';
 import { NetflixHorrorExpiringRepository } from './repositories/netflix-horror-expiring.repository';
 import { ReviewRawData } from './types/review-raw-data.interface';
-import { ReviewDto } from './dto/review.dto';
-import { ReviewPageResponseDto } from './dto/review-page-response.dto';
 import { StreamingPageResponseDto } from './dto/streaming-page-response.dto';
 
 @Injectable()
@@ -72,7 +70,7 @@ export class MoviesService {
       return failure(`스트리밍 영화 ID ${id}를 찾을 수 없습니다.`);
     }
 
-    const { movie, reviewsRaw, totalReviews } = result;
+    const { movie } = result;
 
     const response: MovieDetailResponseDto = {
       id: movie.id,
@@ -86,8 +84,6 @@ export class MoviesService {
         this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,
-      reviews: reviewsRaw.map(this.mapReviewToDto),
-      totalReviews: totalReviews
     };
 
     return success(response);
@@ -130,16 +126,6 @@ export class MoviesService {
     });
   }
 
-  private mapReviewToDto = (review: ReviewRawData): ReviewDto => ({
-    id: review.id,
-    content: review.content,
-    createdAt: review.createdAt,
-    profile: {
-      id: review.profileId,
-      name: review.profileName
-    }
-  });
-
   async getExpiringHorrorMovieDetail(id: number): Promise<Result<ExpiringMovieDetailResponseDto, string>> {
     const result = await this.movieRepository.findMovieWithProvidersAndReviews(id);
 
@@ -168,16 +154,6 @@ export class MoviesService {
         mp.theProviderId.toString() === "1" ? "넷플릭스" : "디즈니플러스"
       ),
       theMovieDbId: movie.theMovieDbId,
-      reviews: reviewsRaw.map(review => ({
-        id: review.id,
-        content: review.content,
-        createdAt: review.createdAt,
-        profile: {
-          id: review.profileId,
-          name: review.profileName
-        }
-      })),
-      totalReviews: reviewsRaw.length
     };
 
     return success(response);
@@ -223,16 +199,6 @@ export class MoviesService {
       voteCount: movie.vote_count,
       watchProviders: movie.movieTheaters.map(mt => mt.theater.name),
       theMovieDbId: movie.theMovieDbId,
-      reviews: reviewsRaw.map(review => ({
-        id: review.id,
-        content: review.content,
-        createdAt: review.createdAt,
-        profile: {
-          id: review.profileId,
-          name: review.profileName
-        }
-      })),
-      totalReviews: totalReviews
     };
 
     return success(response);
@@ -259,37 +225,8 @@ export class MoviesService {
         this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,
-      reviews: reviewsRaw.map(this.mapReviewToDto),
-      totalReviews: totalReviews
     };
 
     return success(response);
-  }
-
-  async getMovieReviews(
-    category: string,
-    movieId: number,
-    query: { page: number }
-  ): Promise<Result<ReviewPageResponseDto, string>> {
-    const movie = await this.movieRepository.findOne(movieId);
-
-    if (!movie) {
-      return failure(`영화 ID ${movieId}를 찾을 수 없습니다.`);
-    }
-
-    const { reviews, total } = await this.movieRepository.findReviewsByMovieIdWithTotal(
-      movie.theMovieDbId,
-      query.page,
-      5  // limit
-    );
-
-    const totalPages = Math.ceil(total / 5);
-
-    return success({
-      reviews: reviews.map(this.mapReviewToDto),
-      totalPages,
-      currentPage: query.page,
-      hasNext: query.page < totalPages
-    });
   }
 }
