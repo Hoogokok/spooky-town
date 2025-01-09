@@ -12,7 +12,7 @@ import { Theater } from './entities/theater.entity';
 import { testDbConfig } from '../../test/test-db.config';
 import { DataSource } from 'typeorm';
 import { success, failure } from '../common/result';
-import { createTestMovie, createTestMovieProvider, createTestReview } from './test/factories/movie.factory';
+import { createTestMovie, createTestMovieProvider } from './test/factories/movie.factory';
 import { createTestNetflixHorrorExpiring } from './test/factories/netflix-horror-expiring.factory';
 
 describe('MoviesService', () => {
@@ -90,32 +90,9 @@ describe('MoviesService', () => {
         }
 
         const result = await service.getStreamingMovies({ provider: 'netflix', page: 0 });
-        expect(result.length).toBe(6);
-        expect(result[0].title).toBe('영화 1');
+        expect(result.movies.length).toBe(6);
+        expect(result.movies[0].title).toBe('영화 1');
       });
-    });
-  });
-
-  describe('getTotalStreamingPages', () => {
-    it('총 페이지 수를 올바르게 계산해야 합니다', async () => {
-      await dataSource.transaction(async (transactionalEntityManager) => {
-        for (let i = 0; i < 7; i++) {
-          const movie = await transactionalEntityManager.save(Movie, createTestMovie({ theMovieDbId: 12345 + i }));
-          await transactionalEntityManager.save(MovieProvider, createTestMovieProvider({ 
-            movie: movie, 
-            theProviderId: 1 
-          }));
-        }
-
-        const result = await service.getTotalStreamingPages({ provider: 'netflix' });
-        expect(result).toBe(2);
-      });
-    });
-
-    it('결과가 0일 때 1 페이지를 반환해야 합니다', async () => {
-      const result = await service.getTotalStreamingPages({ provider: 'netflix' });
-
-      expect(result).toBe(1);
     });
   });
 
@@ -124,8 +101,6 @@ describe('MoviesService', () => {
       await dataSource.transaction(async (transactionalEntityManager) => {
         const movie = await transactionalEntityManager.save(Movie, createTestMovie());
         await transactionalEntityManager.save(MovieProvider, createTestMovieProvider({ movie, theProviderId: 1 }));
-        await transactionalEntityManager.save(Review, createTestReview({ movie }));
-
         const result = await service.getStreamingMovieDetail(movie.id);
 
         expect(result.success).toBe(true);
@@ -350,7 +325,7 @@ describe('MoviesService', () => {
             overview: '테스트 개요',
             voteAverage: 8.5,
             voteCount: 1000,
-            providers: ['CGV'],
+            watchProviders: ['CGV'],
             theMovieDbId: 12345,
             reviews: [{ id: expect.any(Number), content: '재미있어요', createdAt: expect.any(String) }],
           });
