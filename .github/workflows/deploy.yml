@@ -28,8 +28,8 @@ jobs:
         run: pnpm build
 
       - name: Create env file
-        run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+        shell: bash
+        run: echo '${{ secrets.ENV_FILE }}' > .env
 
       - name: Deploy to Lightsail
         env:
