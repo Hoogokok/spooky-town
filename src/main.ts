@@ -5,7 +5,7 @@ import { AuthGuard } from './auth/auth.guard';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: process.env.FRONT_END_URL || 'http://localhost:5173',
+    origin: process.env.FRONTEND_URL || process.env.FRONTEND_URL_2 || 'http://localhost:5173',
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type, Accept, X-API-Key, Authorization',
