@@ -6,8 +6,6 @@ import { MovieDetailResponseDto } from './dto/movie-detail-response.dto';
 import { ExpiringMovieResponseDto } from './dto/expiring-movie-response.dto';
 import { ExpiringMovieDetailResponseDto } from './dto/expiring-movie-detail-response.dto';
 import { Failure } from 'src/common/result';
-import { ReviewQueryDto } from './dto/review-query.dto';
-import { ReviewPageResponseDto } from './dto/review-page-response.dto';
 import { StreamingPageResponseDto } from './dto/streaming-page-response.dto';
 @Controller('movies')
 export class MoviesController {
@@ -70,16 +68,4 @@ export class MoviesController {
     }
   }
 
-  @Get(':movieType/:id/reviews')
-  async getMovieReviews(
-    @Param('movieType') movieType: string,
-    @Param('id', ParseIntPipe) id: number,
-    @Query() query: ReviewQueryDto
-  ): Promise<ReviewPageResponseDto> {
-    const result = await this.moviesService.getMovieReviews(movieType, id, { page: query.page });
-    if (result.success) {
-      return result.data;
-    }
-    throw new NotFoundException((result as Failure<string>).error);
-  }
 }
