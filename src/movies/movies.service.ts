@@ -10,7 +10,6 @@ import { MovieProvider } from './entities/movie-provider.entity';
 import { Result, success, failure } from '../common/result';
 import { MovieRepository } from './repositories/movie.repository';
 import { NetflixHorrorExpiringRepository } from './repositories/netflix-horror-expiring.repository';
-import { ReviewQueryDto } from './dto/review-query.dto';
 import { ReviewRawData } from './types/review-raw-data.interface';
 import { ReviewDto } from './dto/review.dto';
 import { ReviewPageResponseDto } from './dto/review-page-response.dto';
@@ -83,7 +82,7 @@ export class MoviesService {
       overview: movie.overview,
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
-      providers: movie.movieProviders.map(mp =>
+      watchProviders: movie.movieProviders.map(mp =>
         this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,
@@ -165,7 +164,7 @@ export class MoviesService {
       overview: movie.overview,
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
-      providers: movie.movieProviders.map(mp =>
+      watchProviders: movie.movieProviders.map(mp =>
         mp.theProviderId.toString() === "1" ? "넷플릭스" : "디즈니플러스"
       ),
       theMovieDbId: movie.theMovieDbId,
@@ -222,7 +221,7 @@ export class MoviesService {
       overview: movie.overview,
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
-      providers: movie.movieTheaters.map(mt => mt.theater.name),
+      watchProviders: movie.movieTheaters.map(mt => mt.theater.name),
       theMovieDbId: movie.theMovieDbId,
       reviews: reviewsRaw.map(review => ({
         id: review.id,
@@ -256,7 +255,7 @@ export class MoviesService {
       overview: movie.overview,
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
-      providers: movie.movieProviders.map(mp =>
+      watchProviders: movie.movieProviders.map(mp =>
         this.getProviderName(mp.theProviderId)
       ),
       theMovieDbId: movie.theMovieDbId,

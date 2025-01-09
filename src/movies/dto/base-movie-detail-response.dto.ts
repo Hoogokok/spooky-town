@@ -7,7 +7,7 @@ export class BaseMovieDetailResponseDto {
   posterPath: string;
   voteAverage: number;
   voteCount: number;
-  providers: string[];
+  watchProviders: string[];
   theMovieDbId: number;
   reviews: ReviewDto[];
   totalReviews: number;
