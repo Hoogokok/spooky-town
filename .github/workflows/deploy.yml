@@ -42,12 +42,12 @@ jobs:
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
           
           # 환경 변수 파일과 함께 배포
-          scp -i private_key -r dist package.json pnpm-lock.yaml ecosystem.config.js .env $USERNAME@$HOST:/home/bitnami/spooky-town/
+          scp -i private_key -r dist package.json pnpm-lock.yaml ecosystem.config.cjs .env $USERNAME@$HOST:/home/bitnami/spooky-town/
           ssh -i private_key $USERNAME@$HOST '
             cd /home/bitnami/spooky-town
             sudo npm install -g pnpm
             sudo npm install -g pm2
             pnpm install --prod
             pm2 delete spooky-town-api || true
-            pm2 start ecosystem.config.js
+            pm2 start ecosystem.config.cjs
           ' 
